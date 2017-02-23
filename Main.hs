@@ -59,7 +59,7 @@ getUsers = [ User "Amanda" "Henderson"
            
 processRequest :: SampleRequest -> String
 processRequest req = field1 req
-           
+         
 
 -- Servant Bits
 type UserAPI = "users"  :>  "get"   :> Get '[JSON] User    
@@ -78,7 +78,8 @@ type UserAPI = "users"  :>  "get"   :> Get '[JSON] User
           :<|> "process-request"   :> ReqBody '[JSON] SampleRequest
                                    :> Post '[PlainText] String 
 
-
+          :<|> "with-header"       :> Servant.Header "Header" String
+                                   :> Get '[PlainText] String
 
 
 
@@ -90,6 +91,7 @@ userAPIServer =
   :<|> return getEntities 
   :<|> (\text -> return (show text))
   :<|> (\body -> return (processRequest body))
+  :<|> (\header -> return (show header))
 
 
 
