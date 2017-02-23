@@ -1,0 +1,22 @@
+name:               yesod-servant-test
+version:            0.0.0
+cabal-version:      >= 1.8
+build-type:         Simple
+
+executable          yesod-servant-test
+  main-is:          Main.hs
+  
+  ghc-options:      -Wall -fwarn-tabs -O2
+
+  build-depends:  base
+                , yesod
+                , yesod-core
+                , yesod-static
+                , wai
+                , servant-server
+                , text
+                , swagger2
+                , servant-swagger
+                , lens
+
+  ghc-options:    -threaded -O2 -rtsopts -with-rtsopts=-N
