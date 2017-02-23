@@ -36,6 +36,12 @@ data Entity' = Entity' { id :: Int, name :: String } deriving (Generic)
 instance ToJSON Entity'
 instance ToSchema Entity'
 
+data SampleRequest = SampleRequest { field1  :: String } deriving (Generic)
+instance ToJSON SampleRequest
+instance FromJSON SampleRequest
+instance ToSchema SampleRequest
+
+
 
 getEntities :: [Entity'] 
 getEntities = [ Entity' 1 "One" ]
@@ -50,6 +56,9 @@ getUsers = [ User "Amanda" "Henderson"
            , User "Kathleen" "Lawson"
            , User "Henry" "Allen"
            ]
+           
+processRequest :: SampleRequest -> String
+processRequest req = field1 req
            
 
 -- Servant Bits
@@ -66,17 +75,23 @@ type UserAPI = "users"  :>  "get"   :> Get '[JSON] User
           :<|> "echo"              :> QueryParam "text" Text 
                                    :> Get '[PlainText] Text
 
+          :<|> "process-request"   :> ReqBody '[JSON] SampleRequest
+                                   :> Post '[PlainText] String 
+
+
+
 
 
 userAPIServer :: Server UserAPI
 userAPIServer = 
-  return (head getUsers)   :<|>
-  return getUsers          :<|>
-  (\userId username -> return (getEntity userId username))     :<|>
-  return getEntities :<|>
-  (\text -> return (case text of 
+       return (head getUsers)   
+  :<|> return getUsers
+  :<|> (\userId username -> return (getEntity userId username))
+  :<|> return getEntities 
+  :<|> (\text -> return (case text of 
                         Nothing  -> "N/A"
                         (Just t) -> t))
+  :<|> (\body -> return (processRequest body))
 
 
 
