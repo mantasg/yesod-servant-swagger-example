@@ -73,7 +73,7 @@ type UserAPI = "users"  :>  "get"   :> Get '[JSON] User
           :<|> "entity" :> "list"  :> Get '[JSON] [Entity'] 
           
           :<|> "echo"              :> QueryParam "text" Text 
-                                   :> Get '[PlainText] Text
+                                   :> Get '[PlainText] String
 
           :<|> "process-request"   :> ReqBody '[JSON] SampleRequest
                                    :> Post '[PlainText] String 
@@ -88,9 +88,7 @@ userAPIServer =
   :<|> return getUsers
   :<|> (\userId username -> return (getEntity userId username))
   :<|> return getEntities 
-  :<|> (\text -> return (case text of 
-                        Nothing  -> "N/A"
-                        (Just t) -> t))
+  :<|> (\text -> return (show text))
   :<|> (\body -> return (processRequest body))
 
 
