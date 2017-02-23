@@ -23,7 +23,7 @@ import           GHC.Generics
 import           Data.Swagger
 import           Servant.Swagger
 import           Control.Lens
-
+import           Control.Monad.Trans.Except
 
 
 -- Model and stuff
@@ -60,6 +60,8 @@ getUsers = [ User "Amanda" "Henderson"
 processRequest :: SampleRequest -> String
 processRequest req = field1 req
          
+failingHandler :: ExceptT ServantErr IO String
+failingHandler = throwError $ err401 { errBody = "Sorry dear user." }
 
 -- Servant Bits
 type UserAPI = "users"  :>  "get"   :> Get '[JSON] User    
@@ -80,6 +82,8 @@ type UserAPI = "users"  :>  "get"   :> Get '[JSON] User
 
           :<|> "with-header"       :> Servant.Header "Header" String
                                    :> Get '[PlainText] String
+                                   
+          :<|> "with-error"        :> Get '[PlainText] String
 
 
 
@@ -92,8 +96,7 @@ userAPIServer =
   :<|> (\text -> return (show text))
   :<|> (\body -> return (processRequest body))
   :<|> (\header -> return (show header))
-
-
+  :<|> failingHandler
 
 -- Servant Yesod bits
 data EmbeddedAPI = EmbeddedAPI { eapiApplication :: Application }

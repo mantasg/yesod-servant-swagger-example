@@ -18,5 +18,6 @@ executable          yesod-servant-test
                 , swagger2
                 , servant-swagger
                 , lens
+                , transformers
 
   ghc-options:    -threaded -O2 -rtsopts -with-rtsopts=-N
