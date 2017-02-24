@@ -24,22 +24,23 @@ import           Servant          hiding (Handler)
 import           Yesod
 import           Yesod.Static
 import           GHC.Generics
-import           Data.Swagger
+import           Data.Swagger hiding (get)
 import           Servant.Swagger
 import           Control.Lens
 
 import           Database.Persist.Sqlite
-import           Control.Monad.Logger (runNoLoggingT)
+import           Control.Monad.Logger (runStderrLoggingT)
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.Except
 import           Data.Pool
 import           Control.Monad.Reader
-
+import GHC.Int (Int64)
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Car json
+    Id sql=custom_id
     make String
-    deriving (Generic)
+    deriving Generic
 |]
 
 instance ToSchema Car
@@ -72,6 +73,7 @@ type PersonAPI =  GetEntities
              :<|> ReturnHeader
              :<|> AddCar
              :<|> GetCars
+             :<|> GetCar
 
 
 server :: ServerT PersonAPI AppM
@@ -84,6 +86,7 @@ server = getEntities
     :<|> responseHeader
     :<|> addCar
     :<|> getCars
+    :<|> getCar
 
 
 type AddCar = "car" :> "add" :> Get '[PlainText] String
@@ -95,10 +98,12 @@ addCar = do
 type GetCars = "car"  :> "list" :> Get '[JSON] [Car]
 getCars :: AppM [Car]
 getCars = runDb $ do
-    _ <- insert $ Car "Foo"
     b <- selectList [] [Asc CarMake]
     return $ map entityVal b
 
+type GetCar = "car" :> "get" :> Capture "id" Int64 :> Get '[JSON] (Maybe Car)
+getCar :: Int64 -> AppM (Maybe Car)
+getCar i = runDb $ get (toSqlKey i)
 
 -- Model and stuff
 data Entity' = Entity' { id :: Int, name :: String } deriving (Generic)
@@ -191,7 +196,7 @@ getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy PersonAPI)
 
 makeSqlitePool :: IO (Pool SqlBackend)
 makeSqlitePool = do
-  p <- runNoLoggingT $ createSqlitePool ":memory:" 10
+  p <- runStderrLoggingT $ createSqlitePool ":memory:" 10
   runSqlPool (runMigration migrateAll) p
   return p
 
