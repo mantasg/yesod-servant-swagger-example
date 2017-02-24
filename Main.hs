@@ -14,6 +14,7 @@
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE EmptyDataDecls        #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts      #-}
 
 --import Yesod
 import           Network.Wai
@@ -34,26 +35,37 @@ import           Control.Monad.Logger (runNoLoggingT)
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.Either
 import           Control.Monad.Trans.Except
+import            Data.Pool
+import Control.Monad.Reader
 
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
-Car
+Car json
     make String
-    deriving Show
+    deriving (Generic)
 |]
 
+instance ToSchema Car
 
 data Config = Config 
-    { getPool :: IO ConnectionPool
+    { getPool :: IO (Pool SqlBackend)
     }
     
-makePool :: IO ConnectionPool
+makePool :: IO (Pool SqlBackend)
 makePool = runNoLoggingT $ do
-  createSqlitePool ":memory:" 10
+  p <- createSqlitePool ":memory:" 10
+  runSqlPool (runMigration migrateAll) p
+  return p
+  
   
 defaultConfig = Config makePool
   
-  
+runDb :: (MonadReader Config m, MonadIO m) => SqlPersistT IO b -> m b
+runDb query = do
+   pool <- Control.Monad.Reader.asks getPool
+   liftIO $ do
+     p <- pool
+     runSqlPool query p
   
 
 type AppM = ReaderT Config (ExceptT ServantErr IO)
@@ -74,6 +86,8 @@ type PersonAPI =  GetEntities
              :<|> WithHeader
              :<|> WithError
              :<|> ReturnHeader
+             :<|> AddCar
+             :<|> GetCars
              
 
 server :: ServerT PersonAPI AppM
@@ -84,8 +98,22 @@ server = getEntities
     :<|> withHeader
     :<|> failingHandler
     :<|> responseHeader
+    :<|> addCar
+    :<|> getCars
 
-  
+
+type AddCar = "car" :> "add" :> Get '[PlainText] String
+addCar :: AppM String
+addCar = do
+  runDb $ insert $ Car "Foo"
+  return "foo"
+
+type GetCars = "car"  :> "list" :> Get '[JSON] [Car]
+getCars :: AppM [Car]
+getCars = runDb $ do 
+    insert $ Car "Foo"
+    b <- selectList [] [Asc CarMake]
+    return $ map entityVal b
 
 
 -- Model and stuff
@@ -102,7 +130,9 @@ instance ToSchema SampleRequest
 -- Request handlers
 type GetEntities = "entity" :> "list"  :> Get '[JSON] [Entity']
 getEntities :: AppM [Entity']
-getEntities = return [ Entity' 1 "One" ]
+getEntities = do 
+  maybeUser <- runDb (selectFirst [] [Asc CarMake])
+  return [ Entity' 1 "One" ]
 ---
 type GetEntity =  "entity" :>  "get"  :> Capture "id" Int  
                                       :> Capture "name" String
@@ -179,17 +209,9 @@ getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy PersonAPI)
   
   
 main :: IO ()
-main = do 
-  runSqlite ":memory:" $ do
-      runMigration migrateAll  
-      insert $ Car "Mazda"
-      records <- selectList [] [ Asc CarMake ]
-      liftIO $ print records
-      
-      liftIO $ do 
-        let myServer = readerServer defaultConfig
-        let api = serve (Proxy :: Proxy PersonAPI) myServer
-        --let api = serve (Proxy :: Proxy MyAPI) myAPIServer
-        static' <- static "static"
-        warp 3000 (App (EmbeddedAPI api) static')       
+main = do         
+  let myServer = readerServer defaultConfig
+  let api = serve (Proxy :: Proxy PersonAPI) myServer
+  static' <- static "static"
+  warp 3000 (App (EmbeddedAPI api) static')       
   

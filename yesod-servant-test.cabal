@@ -25,5 +25,7 @@ executable          yesod-servant-test
                 , monad-logger 
                 , transformers
                 , either
+                , resource-pool
+                , mtl
 
   ghc-options:    -threaded -O2 -rtsopts -with-rtsopts=-N
