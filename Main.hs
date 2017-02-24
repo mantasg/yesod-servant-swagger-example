@@ -56,9 +56,6 @@ defaultConfig = Config makePool
   
   
 
-data Person = Person String deriving Generic
-instance ToJSON Person
-
 type AppM = ReaderT Config (ExceptT ServantErr IO)
 
 readerToEither :: Config -> AppM :~> ExceptT ServantErr IO
@@ -73,12 +70,14 @@ readerServer cfg = enter (readerToEither cfg) server
 type PersonAPI =  GetEntities 
              :<|> GetEntity
              :<|> Echo
+             :<|> ProcessRequest
              
 
 server :: ServerT PersonAPI AppM
 server = getEntities 
     :<|> getEntity
     :<|> echo
+    :<|> processRequest
 
   
 
@@ -112,7 +111,7 @@ echo = return . show
 ---                                    
 type ProcessRequest = "process-request"   :> ReqBody '[JSON] SampleRequest
                                           :> Post '[PlainText] String                                 
-processRequest :: Server ProcessRequest
+processRequest :: SampleRequest -> AppM String
 processRequest = return . field1
 ---                                    
 type WithHeader = "with-header"       :> Servant.Header "Header" String
@@ -129,15 +128,12 @@ responseHeader :: Server ReturnHeader
 responseHeader = return $ Servant.addHeader "headerVal" "foo"
 
 -- Servant Bits
-type MyAPI =   ProcessRequest
-          :<|> WithHeader                                  
+type MyAPI =  WithHeader                                  
           :<|> WithError
           :<|> ReturnHeader
 
 myAPIServer :: Server MyAPI
-myAPIServer = 
-       processRequest
-  :<|> withHeader
+myAPIServer =  withHeader
   :<|> failingHandler
   :<|> responseHeader
 
