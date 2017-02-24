@@ -52,7 +52,7 @@ responseHeader :: Headers '[Servant.Header "SomeHeader" String] String
 responseHeader = Servant.addHeader "headerVal" "foo"
 
 -- Servant Bits
-type UserAPI = "entity" :>  "get"  :> Capture "id" Int  
+type MyAPI =   "entity" :>  "get"  :> Capture "id" Int  
                                    :> Capture "name" String
                                    :> Get '[JSON] Entity'  
                         
@@ -73,8 +73,8 @@ type UserAPI = "entity" :>  "get"  :> Capture "id" Int
 
 
 
-userAPIServer :: Server UserAPI
-userAPIServer = 
+myAPIServer :: Server MyAPI
+myAPIServer = 
        (\userId username -> return (getEntity userId username))
   :<|> return getEntities 
   :<|> (\text -> return (show text))
@@ -117,7 +117,7 @@ getHomeR :: Handler Html
 getHomeR = defaultLayout [whamlet|Hello World!|]
 
 getSwaggerR :: Handler Value
-getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy UserAPI)
+getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy MyAPI)
   & basePath .~ Just "/api"
   & info.title   .~ "Todo API"
   & info.version .~ "1.0"
@@ -125,7 +125,7 @@ getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy UserAPI)
   
 main :: IO ()
 main = do 
-  let api = serve (Proxy :: Proxy UserAPI) userAPIServer
+  let api = serve (Proxy :: Proxy MyAPI) myAPIServer
   static' <- static "static"
   warp 3000 (App (EmbeddedAPI api) static') 
   
