@@ -71,6 +71,7 @@ type PersonAPI =  GetEntities
              :<|> GetEntity
              :<|> Echo
              :<|> ProcessRequest
+             :<|> WithHeader
              
 
 server :: ServerT PersonAPI AppM
@@ -78,6 +79,7 @@ server = getEntities
     :<|> getEntity
     :<|> echo
     :<|> processRequest
+    :<|> withHeader
 
   
 
@@ -116,7 +118,7 @@ processRequest = return . field1
 ---                                    
 type WithHeader = "with-header"       :> Servant.Header "Header" String
                                       :> Get '[PlainText] String
-withHeader :: Server WithHeader
+withHeader :: Maybe String -> AppM String
 withHeader = return . show 
 ---
 type WithError = "with-error"        :> Get '[PlainText] String
@@ -128,13 +130,11 @@ responseHeader :: Server ReturnHeader
 responseHeader = return $ Servant.addHeader "headerVal" "foo"
 
 -- Servant Bits
-type MyAPI =  WithHeader                                  
-          :<|> WithError
+type MyAPI =   WithError
           :<|> ReturnHeader
 
 myAPIServer :: Server MyAPI
-myAPIServer =  withHeader
-  :<|> failingHandler
+myAPIServer =  failingHandler
   :<|> responseHeader
 
 -- Servant Yesod bits
