@@ -63,6 +63,9 @@ processRequest req = field1 req
 failingHandler :: ExceptT ServantErr IO String
 failingHandler = throwError $ err401 { errBody = "Sorry dear user." }
 
+responseHeader :: Headers '[Servant.Header "SomeHeader" String] String
+responseHeader = Servant.addHeader "headerVal" "foo"
+
 -- Servant Bits
 type UserAPI = "users"  :>  "get"   :> Get '[JSON] User    
 
@@ -82,8 +85,10 @@ type UserAPI = "users"  :>  "get"   :> Get '[JSON] User
 
           :<|> "with-header"       :> Servant.Header "Header" String
                                    :> Get '[PlainText] String
-                                   
+                                                          
           :<|> "with-error"        :> Get '[PlainText] String
+          
+          :<|> "return-header"     :> Get '[PlainText] (Headers '[Servant.Header "SomeHeader" String] String)                                   
 
 
 
@@ -97,6 +102,7 @@ userAPIServer =
   :<|> (\body -> return (processRequest body))
   :<|> (\header -> return (show header))
   :<|> failingHandler
+  :<|> return responseHeader
 
 -- Servant Yesod bits
 data EmbeddedAPI = EmbeddedAPI { eapiApplication :: Application }
