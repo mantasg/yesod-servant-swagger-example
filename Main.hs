@@ -9,7 +9,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE PackageImports        #-}
 {-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 
 --import Yesod
@@ -45,22 +44,22 @@ type GetEntity =  "entity" :>  "get"  :> Capture "id" Int
                                       :> Capture "name" String
                                       :> Get '[JSON] Entity'                                        
 getEntity :: Server GetEntity
-getEntity = \i username -> return $ Entity' i username                                      
+getEntity i username = return $ Entity' i username
 ---                                      
 type Echo = "echo"        :> QueryParam "text" Text  
                           :> Get '[PlainText] String
 echo :: Server Echo
-echo = \param -> return $ show param
+echo = return . show
 ---                                    
 type ProcessRequest = "process-request"   :> ReqBody '[JSON] SampleRequest
                                           :> Post '[PlainText] String                                 
 processRequest :: Server ProcessRequest
-processRequest = \req -> return $ field1 req
+processRequest = return . field1
 ---                                    
 type WithHeader = "with-header"       :> Servant.Header "Header" String
                                       :> Get '[PlainText] String
 withHeader :: Server WithHeader
-withHeader = \header -> return $ show header
+withHeader = return . show 
 ---
 type WithError = "with-error"        :> Get '[PlainText] String
 failingHandler :: Server WithError
@@ -90,7 +89,7 @@ myAPIServer =
   :<|> responseHeader
 
 -- Servant Yesod bits
-data EmbeddedAPI = EmbeddedAPI { eapiApplication :: Application }
+newtype EmbeddedAPI = EmbeddedAPI { eapiApplication :: Application }
                                    
 instance RenderRoute EmbeddedAPI where
   data Route EmbeddedAPI = EmbeddedAPIR ([Text], [(Text, Text)]) deriving(Eq, Show, Read)
