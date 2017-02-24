@@ -189,12 +189,16 @@ getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy PersonAPI)
   & info.version .~ "1.0"
   & applyTags [Tag "API Controller" (Just "API Controller Name") Nothing]
 
-main :: IO ()
-main = do
+makeSqlitePool :: IO (Pool SqlBackend)
+makeSqlitePool = do
   p <- runNoLoggingT $ createSqlitePool ":memory:" 10
   runSqlPool (runMigration migrateAll) p
+  return p
 
-  let myServer = readerServer (Config p)
+main :: IO ()
+main = do
+  pool <- makeSqlitePool
+  let myServer = readerServer (Config pool)
   let api = serve (Proxy :: Proxy PersonAPI) myServer
   static' <- static "static"
   warp 3000 (App (EmbeddedAPI api) static')
