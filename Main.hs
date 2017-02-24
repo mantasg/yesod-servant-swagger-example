@@ -28,15 +28,12 @@ import           Data.Swagger
 import           Servant.Swagger
 import           Control.Lens
 
-import           Database.Persist
 import           Database.Persist.Sqlite
-import           Database.Persist.TH
 import           Control.Monad.Logger (runNoLoggingT)
 import           Control.Monad.Trans.Reader
-import           Control.Monad.Trans.Either
 import           Control.Monad.Trans.Except
-import            Data.Pool
-import Control.Monad.Reader
+import           Data.Pool
+import           Control.Monad.Reader
 
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
@@ -47,9 +44,10 @@ Car json
 
 instance ToSchema Car
 
-data Config = Config 
-    { getPool :: IO (Pool SqlBackend)
-    }
+newtype Config = Config { getPool :: IO (Pool SqlBackend) }
+
+defaultConfig :: Config
+defaultConfig = Config makePool
     
 makePool :: IO (Pool SqlBackend)
 makePool = runNoLoggingT $ do
@@ -58,7 +56,7 @@ makePool = runNoLoggingT $ do
   return p
   
   
-defaultConfig = Config makePool
+
   
 runDb :: (MonadReader Config m, MonadIO m) => SqlPersistT IO b -> m b
 runDb query = do
@@ -105,13 +103,13 @@ server = getEntities
 type AddCar = "car" :> "add" :> Get '[PlainText] String
 addCar :: AppM String
 addCar = do
-  runDb $ insert $ Car "Foo"
+  _ <- runDb $ insert $ Car "Foo"
   return "foo"
 
 type GetCars = "car"  :> "list" :> Get '[JSON] [Car]
 getCars :: AppM [Car]
 getCars = runDb $ do 
-    insert $ Car "Foo"
+    _ <- insert $ Car "Foo"
     b <- selectList [] [Asc CarMake]
     return $ map entityVal b
 
@@ -130,9 +128,7 @@ instance ToSchema SampleRequest
 -- Request handlers
 type GetEntities = "entity" :> "list"  :> Get '[JSON] [Entity']
 getEntities :: AppM [Entity']
-getEntities = do 
-  maybeUser <- runDb (selectFirst [] [Asc CarMake])
-  return [ Entity' 1 "One" ]
+getEntities = return [ Entity' 1 "One" ]
 ---
 type GetEntity =  "entity" :>  "get"  :> Capture "id" Int  
                                       :> Capture "name" String
@@ -160,7 +156,7 @@ failingHandler :: AppM String
 failingHandler = throwError $ err401 { errBody = "Sorry dear user." }
 ---
 type ReturnHeader = "return-header"     :> Get '[PlainText] (Headers '[Servant.Header "SomeHeader" String] String)
-responseHeader :: AppM (Headers '[Servant.Header "SomeHeader" String] [Char])
+responseHeader :: AppM (Headers '[Servant.Header "SomeHeader" String] String)
 responseHeader = return $ Servant.addHeader "headerVal" "foo"
 
 
@@ -207,11 +203,9 @@ getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy PersonAPI)
   & info.version .~ "1.0"
   & applyTags [Tag "API Controller" (Just "API Controller Name") Nothing]
   
-  
 main :: IO ()
 main = do         
   let myServer = readerServer defaultConfig
   let api = serve (Proxy :: Proxy PersonAPI) myServer
   static' <- static "static"
   warp 3000 (App (EmbeddedAPI api) static')       
-  
