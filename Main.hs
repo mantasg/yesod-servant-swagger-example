@@ -18,10 +18,10 @@
 
 --import Yesod
 import           Network.Wai
-import           Yesod.Core.Types 
+import           Yesod.Core.Types
 import           Data.Text        (Text)
 import           Servant          hiding (Handler)
-import           Yesod 
+import           Yesod
 import           Yesod.Static
 import           GHC.Generics
 import           Data.Swagger
@@ -44,27 +44,13 @@ Car json
 
 instance ToSchema Car
 
-newtype Config = Config { getPool :: IO (Pool SqlBackend) }
+newtype Config = Config { getPool :: Pool SqlBackend }
 
-defaultConfig :: Config
-defaultConfig = Config makePool
-    
-makePool :: IO (Pool SqlBackend)
-makePool = runNoLoggingT $ do
-  p <- createSqlitePool ":memory:" 10
-  runSqlPool (runMigration migrateAll) p
-  return p
-  
-  
-
-  
-runDb :: (MonadReader Config m, MonadIO m) => SqlPersistT IO b -> m b
+runDb :: (MonadBaseControl IO m, MonadReader Config m) => ReaderT SqlBackend m b -> m b
 runDb query = do
    pool <- Control.Monad.Reader.asks getPool
-   liftIO $ do
-     p <- pool
-     runSqlPool query p
-  
+   runSqlPool query pool
+
 
 type AppM = ReaderT Config (ExceptT ServantErr IO)
 
@@ -77,7 +63,7 @@ readerServer cfg = enter (readerToEither cfg) server
 
 
 
-type PersonAPI =  GetEntities 
+type PersonAPI =  GetEntities
              :<|> GetEntity
              :<|> Echo
              :<|> ProcessRequest
@@ -86,10 +72,10 @@ type PersonAPI =  GetEntities
              :<|> ReturnHeader
              :<|> AddCar
              :<|> GetCars
-             
+
 
 server :: ServerT PersonAPI AppM
-server = getEntities 
+server = getEntities
     :<|> getEntity
     :<|> echo
     :<|> processRequest
@@ -108,7 +94,7 @@ addCar = do
 
 type GetCars = "car"  :> "list" :> Get '[JSON] [Car]
 getCars :: AppM [Car]
-getCars = runDb $ do 
+getCars = runDb $ do
     _ <- insert $ Car "Foo"
     b <- selectList [] [Asc CarMake]
     return $ map entityVal b
@@ -130,26 +116,26 @@ type GetEntities = "entity" :> "list"  :> Get '[JSON] [Entity']
 getEntities :: AppM [Entity']
 getEntities = return [ Entity' 1 "One" ]
 ---
-type GetEntity =  "entity" :>  "get"  :> Capture "id" Int  
+type GetEntity =  "entity" :>  "get"  :> Capture "id" Int
                                       :> Capture "name" String
-                                      :> Get '[JSON] Entity'                                        
+                                      :> Get '[JSON] Entity'
 getEntity :: Int -> String -> AppM Entity'
 getEntity i username = return $ Entity' i username
----                                      
-type Echo = "echo"        :> QueryParam "text" Text  
+---
+type Echo = "echo"        :> QueryParam "text" Text
                           :> Get '[PlainText] String
 echo :: Maybe Text -> AppM String
 echo = return . show
----                                    
+---
 type ProcessRequest = "process-request"   :> ReqBody '[JSON] SampleRequest
-                                          :> Post '[PlainText] String                                 
+                                          :> Post '[PlainText] String
 processRequest :: SampleRequest -> AppM String
 processRequest = return . field1
----                                    
+---
 type WithHeader = "with-header"       :> Servant.Header "Header" String
                                       :> Get '[PlainText] String
 withHeader :: Maybe String -> AppM String
-withHeader = return . show 
+withHeader = return . show
 ---
 type WithError = "with-error"        :> Get '[PlainText] String
 failingHandler :: AppM String
@@ -165,23 +151,23 @@ responseHeader = return $ Servant.addHeader "headerVal" "foo"
 
 -- Servant Yesod bits
 newtype EmbeddedAPI = EmbeddedAPI { eapiApplication :: Application }
-                                   
+
 instance RenderRoute EmbeddedAPI where
   data Route EmbeddedAPI = EmbeddedAPIR ([Text], [(Text, Text)]) deriving(Eq, Show, Read)
   renderRoute (EmbeddedAPIR t) = t
 
 instance ParseRoute EmbeddedAPI where
   parseRoute t = Just (EmbeddedAPIR t)
-  
+
 instance Yesod master => YesodSubDispatch EmbeddedAPI (HandlerT master IO) where
   yesodSubDispatch YesodSubRunnerEnv{..} req = resp
     where
       master = yreSite ysreParentEnv
       site = ysreGetSub master
-      resp = eapiApplication site req  
+      resp = eapiApplication site req
 ------------------------------------------------
-  
-data App = App { appAPI :: EmbeddedAPI 
+
+data App = App { appAPI :: EmbeddedAPI
                , getStatic :: Static
                }
 
@@ -202,10 +188,13 @@ getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy PersonAPI)
   & info.title   .~ "Todo API"
   & info.version .~ "1.0"
   & applyTags [Tag "API Controller" (Just "API Controller Name") Nothing]
-  
+
 main :: IO ()
-main = do         
-  let myServer = readerServer defaultConfig
+main = do
+  p <- runNoLoggingT $ createSqlitePool ":memory:" 10
+  runSqlPool (runMigration migrateAll) p
+
+  let myServer = readerServer (Config p)
   let api = serve (Proxy :: Proxy PersonAPI) myServer
   static' <- static "static"
-  warp 3000 (App (EmbeddedAPI api) static')       
+  warp 3000 (App (EmbeddedAPI api) static')
