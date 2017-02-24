@@ -11,6 +11,10 @@
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TypeOperators         #-}
 
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE EmptyDataDecls        #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 --import Yesod
 import           Network.Wai
 import           Yesod.Core.Types 
@@ -22,6 +26,19 @@ import           GHC.Generics
 import           Data.Swagger
 import           Servant.Swagger
 import           Control.Lens
+
+import           Database.Persist
+import           Database.Persist.Sqlite
+import           Database.Persist.TH
+
+
+
+
+share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
+Car
+    make String
+    deriving Show
+|]
 
 
 -- Model and stuff
@@ -131,7 +148,14 @@ getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy MyAPI)
   
 main :: IO ()
 main = do 
-  let api = serve (Proxy :: Proxy MyAPI) myAPIServer
-  static' <- static "static"
-  warp 3000 (App (EmbeddedAPI api) static') 
+  runSqlite ":memory:" $ do
+      runMigration migrateAll  
+      insert $ Car "Mazda"
+      records <- selectList [] [ Asc CarMake ]
+      liftIO $ print records
+      
+      liftIO $ do 
+        let api = serve (Proxy :: Proxy MyAPI) myAPIServer
+        static' <- static "static"
+        warp 3000 (App (EmbeddedAPI api) static')       
   

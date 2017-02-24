@@ -18,5 +18,9 @@ executable          yesod-servant-test
                 , swagger2
                 , servant-swagger
                 , lens
+                
+                , persistent  
+                , persistent-sqlite  
+                , persistent-template 
 
   ghc-options:    -threaded -O2 -rtsopts -with-rtsopts=-N
