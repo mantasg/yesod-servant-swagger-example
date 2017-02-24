@@ -22,5 +22,8 @@ executable          yesod-servant-test
                 , persistent  
                 , persistent-sqlite  
                 , persistent-template 
+                , monad-logger 
+                , transformers
+                , either
 
   ghc-options:    -threaded -O2 -rtsopts -with-rtsopts=-N

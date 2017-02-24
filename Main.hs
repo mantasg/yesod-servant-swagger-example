@@ -30,8 +30,10 @@ import           Control.Lens
 import           Database.Persist
 import           Database.Persist.Sqlite
 import           Database.Persist.TH
-
-
+import           Control.Monad.Logger (runNoLoggingT)
+import           Control.Monad.Trans.Reader
+import           Control.Monad.Trans.Either
+import           Control.Monad.Trans.Except
 
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
@@ -39,6 +41,50 @@ Car
     make String
     deriving Show
 |]
+
+
+data Config = Config 
+    { getPool :: IO ConnectionPool
+    }
+    
+makePool :: IO ConnectionPool
+makePool = runNoLoggingT $ do
+  createSqlitePool ":memory:" 10
+  
+defaultConfig = Config makePool
+  
+  
+  
+
+data Person = Person String deriving Generic
+instance ToJSON Person
+
+type PersonAPI =  "users" :> Get   '[JSON]   [Person]
+
+type AppM = ReaderT Config (ExceptT ServantErr IO)
+
+readerToEither :: Config -> AppM :~> ExceptT ServantErr IO
+readerToEither cfg = Nat $ \x -> runReaderT x cfg
+
+readerServer :: Config -> Server PersonAPI
+readerServer cfg = enter (readerToEither cfg) server
+
+server :: ServerT PersonAPI AppM
+server = allPersons
+
+allPersons :: AppM [Person]
+allPersons = do
+    --users <- runDb $ selectList [] []
+    --let people = map (\(Entity _ y) -> userToPerson y) users
+    return []
+
+--runDb query = do
+   --pool <- asks getPool
+   --liftIO $ runSqlPool query pool
+
+
+
+  
 
 
 -- Model and stuff
@@ -155,7 +201,9 @@ main = do
       liftIO $ print records
       
       liftIO $ do 
-        let api = serve (Proxy :: Proxy MyAPI) myAPIServer
+        let myServer = readerServer defaultConfig
+        let api = serve (Proxy :: Proxy PersonAPI) myServer
+        --let api = serve (Proxy :: Proxy MyAPI) myAPIServer
         static' <- static "static"
         warp 3000 (App (EmbeddedAPI api) static')       
   
