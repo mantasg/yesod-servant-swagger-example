@@ -70,10 +70,10 @@ readerServer cfg = enter (readerToEither cfg) server
 
 
 
-type PersonAPI =  GetEntities
+type PersonAPI =  GetEntities :<|> Echo
 
 server :: ServerT PersonAPI AppM
-server = getEntities
+server = getEntities :<|> echo
 
   
 
@@ -102,7 +102,7 @@ getEntity i username = return $ Entity' i username
 ---                                      
 type Echo = "echo"        :> QueryParam "text" Text  
                           :> Get '[PlainText] String
-echo :: Server Echo
+echo :: Maybe Text -> AppM String
 echo = return . show
 ---                                    
 type ProcessRequest = "process-request"   :> ReqBody '[JSON] SampleRequest
@@ -125,7 +125,6 @@ responseHeader = return $ Servant.addHeader "headerVal" "foo"
 
 -- Servant Bits
 type MyAPI =   GetEntity
-          :<|> Echo
           :<|> ProcessRequest
           :<|> WithHeader                                  
           :<|> WithError
@@ -134,7 +133,6 @@ type MyAPI =   GetEntity
 myAPIServer :: Server MyAPI
 myAPIServer = 
        getEntity
-  :<|> echo
   :<|> processRequest
   :<|> withHeader
   :<|> failingHandler
