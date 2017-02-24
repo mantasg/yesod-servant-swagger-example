@@ -23,7 +23,6 @@ import           GHC.Generics
 import           Data.Swagger
 import           Servant.Swagger
 import           Control.Lens
-import           Control.Monad.Trans.Except
 
 
 -- Model and stuff
@@ -36,52 +35,59 @@ instance ToJSON SampleRequest
 instance FromJSON SampleRequest
 instance ToSchema SampleRequest
 
-getEntities :: [Entity'] 
-getEntities = [ Entity' 1 "One" ]
 
-getEntity :: Int -> String -> Entity' 
-getEntity i username = Entity' i username
-                    
-processRequest :: SampleRequest -> String
-processRequest req = field1 req
-         
-failingHandler :: ExceptT ServantErr IO String
+-- Request handlers
+type GetEntities = "entity" :> "list"  :> Get '[JSON] [Entity']
+getEntities :: Server GetEntities
+getEntities = return [ Entity' 1 "One" ]
+---
+type GetEntity =  "entity" :>  "get"  :> Capture "id" Int  
+                                      :> Capture "name" String
+                                      :> Get '[JSON] Entity'                                        
+getEntity :: Server GetEntity
+getEntity = \i username -> return $ Entity' i username                                      
+---                                      
+type Echo = "echo"        :> QueryParam "text" Text  
+                          :> Get '[PlainText] String
+echo :: Server Echo
+echo = \param -> return $ show param
+---                                    
+type ProcessRequest = "process-request"   :> ReqBody '[JSON] SampleRequest
+                                          :> Post '[PlainText] String                                 
+processRequest :: Server ProcessRequest
+processRequest = \req -> return $ field1 req
+---                                    
+type WithHeader = "with-header"       :> Servant.Header "Header" String
+                                      :> Get '[PlainText] String
+withHeader :: Server WithHeader
+withHeader = \header -> return $ show header
+---
+type WithError = "with-error"        :> Get '[PlainText] String
+failingHandler :: Server WithError
 failingHandler = throwError $ err401 { errBody = "Sorry dear user." }
-
-responseHeader :: Headers '[Servant.Header "SomeHeader" String] String
-responseHeader = Servant.addHeader "headerVal" "foo"
+---
+type ReturnHeader = "return-header"     :> Get '[PlainText] (Headers '[Servant.Header "SomeHeader" String] String)
+responseHeader :: Server ReturnHeader
+responseHeader = return $ Servant.addHeader "headerVal" "foo"
 
 -- Servant Bits
-type MyAPI =   "entity" :>  "get"  :> Capture "id" Int  
-                                   :> Capture "name" String
-                                   :> Get '[JSON] Entity'  
-                        
-          :<|> "entity" :> "list"  :> Get '[JSON] [Entity'] 
-          
-          :<|> "echo"              :> QueryParam "text" Text 
-                                   :> Get '[PlainText] String
-
-          :<|> "process-request"   :> ReqBody '[JSON] SampleRequest
-                                   :> Post '[PlainText] String 
-
-          :<|> "with-header"       :> Servant.Header "Header" String
-                                   :> Get '[PlainText] String
-                                                          
-          :<|> "with-error"        :> Get '[PlainText] String
-          
-          :<|> "return-header"     :> Get '[PlainText] (Headers '[Servant.Header "SomeHeader" String] String)                                   
-
-
+type MyAPI =   GetEntity
+          :<|> GetEntities
+          :<|> Echo
+          :<|> ProcessRequest
+          :<|> WithHeader                                  
+          :<|> WithError
+          :<|> ReturnHeader
 
 myAPIServer :: Server MyAPI
 myAPIServer = 
-       (\userId username -> return (getEntity userId username))
-  :<|> return getEntities 
-  :<|> (\text -> return (show text))
-  :<|> (\body -> return (processRequest body))
-  :<|> (\header -> return (show header))
+       getEntity
+  :<|> getEntities 
+  :<|> echo
+  :<|> processRequest
+  :<|> withHeader
   :<|> failingHandler
-  :<|> return responseHeader
+  :<|> responseHeader
 
 -- Servant Yesod bits
 data EmbeddedAPI = EmbeddedAPI { eapiApplication :: Application }
