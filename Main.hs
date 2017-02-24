@@ -27,11 +27,6 @@ import           Control.Monad.Trans.Except
 
 
 -- Model and stuff
-
-data User = User { username :: String , fullname :: String } deriving (Generic)
-instance ToJSON User
-instance ToSchema User
-
 data Entity' = Entity' { id :: Int, name :: String } deriving (Generic)
 instance ToJSON Entity'
 instance ToSchema Entity'
@@ -41,22 +36,12 @@ instance ToJSON SampleRequest
 instance FromJSON SampleRequest
 instance ToSchema SampleRequest
 
-
-
 getEntities :: [Entity'] 
 getEntities = [ Entity' 1 "One" ]
 
 getEntity :: Int -> String -> Entity' 
 getEntity i username = Entity' i username
                     
-getUsers :: [User]
-getUsers = [ User "Amanda" "Henderson"
-           , User "Anthony" "Sims"
-           , User "Juan" "Olson"
-           , User "Kathleen" "Lawson"
-           , User "Henry" "Allen"
-           ]
-           
 processRequest :: SampleRequest -> String
 processRequest req = field1 req
          
@@ -67,13 +52,9 @@ responseHeader :: Headers '[Servant.Header "SomeHeader" String] String
 responseHeader = Servant.addHeader "headerVal" "foo"
 
 -- Servant Bits
-type UserAPI = "users"  :>  "get"   :> Get '[JSON] User    
-
-          :<|> "users"  :>  "list"  :> Get '[JSON] [User]  
-          
-          :<|> "entity" :>  "get"   :> Capture "id" Int  
-                                    :> Capture "name" String
-                                    :> Get '[JSON] Entity'  
+type UserAPI = "entity" :>  "get"  :> Capture "id" Int  
+                                   :> Capture "name" String
+                                   :> Get '[JSON] Entity'  
                         
           :<|> "entity" :> "list"  :> Get '[JSON] [Entity'] 
           
@@ -94,9 +75,7 @@ type UserAPI = "users"  :>  "get"   :> Get '[JSON] User
 
 userAPIServer :: Server UserAPI
 userAPIServer = 
-       return (head getUsers)   
-  :<|> return getUsers
-  :<|> (\userId username -> return (getEntity userId username))
+       (\userId username -> return (getEntity userId username))
   :<|> return getEntities 
   :<|> (\text -> return (show text))
   :<|> (\body -> return (processRequest body))
