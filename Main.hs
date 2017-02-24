@@ -127,6 +127,7 @@ getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy MyAPI)
   & basePath .~ Just "/api"
   & info.title   .~ "Todo API"
   & info.version .~ "1.0"
+  & applyTags [Tag "API Controller" (Just "API Controller Name") Nothing]
   
   
 main :: IO ()
