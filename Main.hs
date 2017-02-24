@@ -72,6 +72,8 @@ type PersonAPI =  GetEntities
              :<|> Echo
              :<|> ProcessRequest
              :<|> WithHeader
+             :<|> WithError
+             :<|> ReturnHeader
              
 
 server :: ServerT PersonAPI AppM
@@ -80,6 +82,8 @@ server = getEntities
     :<|> echo
     :<|> processRequest
     :<|> withHeader
+    :<|> failingHandler
+    :<|> responseHeader
 
   
 
@@ -122,20 +126,16 @@ withHeader :: Maybe String -> AppM String
 withHeader = return . show 
 ---
 type WithError = "with-error"        :> Get '[PlainText] String
-failingHandler :: Server WithError
+failingHandler :: AppM String
 failingHandler = throwError $ err401 { errBody = "Sorry dear user." }
 ---
 type ReturnHeader = "return-header"     :> Get '[PlainText] (Headers '[Servant.Header "SomeHeader" String] String)
-responseHeader :: Server ReturnHeader
+responseHeader :: AppM (Headers '[Servant.Header "SomeHeader" String] [Char])
 responseHeader = return $ Servant.addHeader "headerVal" "foo"
 
--- Servant Bits
-type MyAPI =   WithError
-          :<|> ReturnHeader
 
-myAPIServer :: Server MyAPI
-myAPIServer =  failingHandler
-  :<|> responseHeader
+
+
 
 -- Servant Yesod bits
 newtype EmbeddedAPI = EmbeddedAPI { eapiApplication :: Application }
@@ -171,7 +171,7 @@ getHomeR :: Handler Html
 getHomeR = defaultLayout [whamlet|Hello World!|]
 
 getSwaggerR :: Handler Value
-getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy MyAPI)
+getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy PersonAPI)
   & basePath .~ Just "/api"
   & info.title   .~ "Todo API"
   & info.version .~ "1.0"
