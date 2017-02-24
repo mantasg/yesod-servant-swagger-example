@@ -59,8 +59,6 @@ defaultConfig = Config makePool
 data Person = Person String deriving Generic
 instance ToJSON Person
 
-type PersonAPI =  "users" :> Get   '[JSON]   [Person]
-
 type AppM = ReaderT Config (ExceptT ServantErr IO)
 
 readerToEither :: Config -> AppM :~> ExceptT ServantErr IO
@@ -69,20 +67,13 @@ readerToEither cfg = Nat $ \x -> runReaderT x cfg
 readerServer :: Config -> Server PersonAPI
 readerServer cfg = enter (readerToEither cfg) server
 
+
+
+
+type PersonAPI =  GetEntities
+
 server :: ServerT PersonAPI AppM
-server = allPersons
-
-allPersons :: AppM [Person]
-allPersons = do
-    --users <- runDb $ selectList [] []
-    --let people = map (\(Entity _ y) -> userToPerson y) users
-    return []
-
---runDb query = do
-   --pool <- asks getPool
-   --liftIO $ runSqlPool query pool
-
-
+server = getEntities
 
   
 
@@ -100,7 +91,7 @@ instance ToSchema SampleRequest
 
 -- Request handlers
 type GetEntities = "entity" :> "list"  :> Get '[JSON] [Entity']
-getEntities :: Server GetEntities
+getEntities :: AppM [Entity']
 getEntities = return [ Entity' 1 "One" ]
 ---
 type GetEntity =  "entity" :>  "get"  :> Capture "id" Int  
@@ -134,7 +125,6 @@ responseHeader = return $ Servant.addHeader "headerVal" "foo"
 
 -- Servant Bits
 type MyAPI =   GetEntity
-          :<|> GetEntities
           :<|> Echo
           :<|> ProcessRequest
           :<|> WithHeader                                  
@@ -144,7 +134,6 @@ type MyAPI =   GetEntity
 myAPIServer :: Server MyAPI
 myAPIServer = 
        getEntity
-  :<|> getEntities 
   :<|> echo
   :<|> processRequest
   :<|> withHeader
