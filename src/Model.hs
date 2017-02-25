@@ -1,26 +1,10 @@
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE PackageImports        #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE EmptyDataDecls        #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE FlexibleContexts      #-}
 
 module Model where
-
 
 import Yesod
 import GHC.Generics
 import Data.Swagger hiding (get)
-
 
 data Entity' = Entity' { id :: Int, name :: String } deriving (Generic)
 instance ToJSON Entity'

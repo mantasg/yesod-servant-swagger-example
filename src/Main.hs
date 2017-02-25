@@ -1,22 +1,9 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE PackageImports        #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE EmptyDataDecls        #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE FlexibleContexts      #-}
 
--- TODO: Tidy up language flags
 
---import Yesod
 import           Servant          hiding (Handler)
 import           Yesod
 import           Yesod.Static
