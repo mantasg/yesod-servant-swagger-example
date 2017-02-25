@@ -29,7 +29,20 @@ getCars = runDb $ do
 
 type GetCar = "car" :> "get" :> Capture "id" Int64 :> Get '[JSON] (Maybe Car)
 getCar :: Int64 -> AppM (Maybe Car)
-getCar i = runDb $ get (toSqlKey i)
+getCar i = do
+  car <- runDb $ get (toSqlKey i)
+  return car
+
+
+type CaseError = "get1" :> Capture "str" String :> Get '[PlainText] String
+caseError :: String -> AppM String
+caseError str = do
+  case str of
+    "404" -> throwError err404
+    "401" -> throwError err401
+    "500" -> throwError err500
+    _       -> return str
+
 
 
 -- Request handlers

@@ -35,6 +35,7 @@ type PersonAPI =  GetEntities
              :<|> AddCar
              :<|> GetCars
              :<|> GetCar
+             :<|> CaseError
 
 
 server :: ServerT PersonAPI AppM
@@ -48,6 +49,7 @@ server = getEntities
     :<|> addCar
     :<|> getCars
     :<|> getCar
+    :<|> caseError
 
 
 
