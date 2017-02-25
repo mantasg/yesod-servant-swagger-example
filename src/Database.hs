@@ -39,4 +39,7 @@ makeSqlitePool :: IO (Pool SqlBackend)
 makeSqlitePool = do
    p <- runStderrLoggingT $ createSqlitePool ":memory:" 10
    runSqlPool (runMigration migrateAll) p
+   _ <- runSqlPool (insert $ Car "make1") p
+   _ <- runSqlPool (insert $ Car "make2") p
+   _ <- runSqlPool (insert $ Car "make3") p
    return p
