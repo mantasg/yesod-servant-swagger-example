@@ -25,9 +25,13 @@ import Database.Persist.Sqlite
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Except
 import GHC.Int (Int64)
-import Database
 import Control.Lens
 import Servant.Swagger
+
+import Database
+import Model
+
+
 
 --- Transformer Stack to DB access
 type AppM = ReaderT Config (ExceptT ServantErr IO)
@@ -38,15 +42,6 @@ readerToEither cfg = Nat $ \x -> runReaderT x cfg
 readerServer :: Config -> Server PersonAPI
 readerServer cfg = enter (readerToEither cfg) server
 
--- Model and stuff
-data Entity' = Entity' { id :: Int, name :: String } deriving (Generic)
-instance ToJSON Entity'
-instance ToSchema Entity'
-
-data SampleRequest = SampleRequest { field1  :: String, field2 :: Maybe String } deriving (Generic)
-instance ToJSON SampleRequest
-instance FromJSON SampleRequest
-instance ToSchema SampleRequest
 
 ---
 
