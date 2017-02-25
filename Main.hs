@@ -17,8 +17,6 @@
 {-# LANGUAGE FlexibleContexts      #-}
 
 --import Yesod
-import           Network.Wai
-import           Yesod.Core.Types
 import           Data.Text        (Text)
 import           Servant          hiding (Handler)
 import           Yesod
@@ -35,6 +33,8 @@ import           Control.Monad.Trans.Except
 import           Data.Pool
 import           Control.Monad.Reader
 import GHC.Int (Int64)
+
+import EmbeddedAPI
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Car json
@@ -154,22 +154,6 @@ responseHeader = return $ Servant.addHeader "headerVal" "foo"
 
 
 
--- Servant Yesod bits
-newtype EmbeddedAPI = EmbeddedAPI { eapiApplication :: Application }
-
-instance RenderRoute EmbeddedAPI where
-  data Route EmbeddedAPI = EmbeddedAPIR ([Text], [(Text, Text)]) deriving(Eq, Show, Read)
-  renderRoute (EmbeddedAPIR t) = t
-
-instance ParseRoute EmbeddedAPI where
-  parseRoute t = Just (EmbeddedAPIR t)
-
-instance Yesod master => YesodSubDispatch EmbeddedAPI (HandlerT master IO) where
-  yesodSubDispatch YesodSubRunnerEnv{..} req = resp
-    where
-      master = yreSite ysreParentEnv
-      site = ysreGetSub master
-      resp = eapiApplication site req
 ------------------------------------------------
 
 data App = App { appAPI :: EmbeddedAPI
