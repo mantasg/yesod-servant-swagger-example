@@ -25,8 +25,7 @@ type GetCars = "car"  :> "list" :> Get '[JSON] [CarModel]
 getCars :: AppM [CarModel]
 getCars = runDb $ do
     b <- selectList [] [Desc CarId]
-    let values = map carFromEntity b
-    return $ values
+    return $ map carFromEntity b
 
 type GetCar = "car" :> "get" :> Capture "id" Int64 :> Get '[JSON] CarModel
 getCarModel :: Int64 -> AppM CarModel
@@ -35,6 +34,13 @@ getCarModel i = do
   case entity of
         (x:_) -> return $ carFromEntity x
         []    -> throwError err404  { errBody = "Car not found" }
+
+
+type GetPersons = "person"  :> "list" :> Get '[JSON] [PersonModel]
+getPersons :: AppM [PersonModel]
+getPersons = runDb $ do
+  list <- selectList [] [Asc PersonId]
+  return $ map personFromEntity list
 
 
 

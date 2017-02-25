@@ -24,6 +24,10 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
   Car json
     make String
     deriving Generic
+
+  Person json
+    name String
+    carId CarId Maybe
 |]
 
 instance ToSchema Car
@@ -39,7 +43,8 @@ makeSqlitePool :: IO (Pool SqlBackend)
 makeSqlitePool = do
    p <- runStderrLoggingT $ createSqlitePool ":memory:" 10
    runSqlPool (runMigration migrateAll) p
-   _ <- runSqlPool (insert $ Car "make1") p
+   carId <- runSqlPool (insert $ Car "make1") p
    _ <- runSqlPool (insert $ Car "make2") p
    _ <- runSqlPool (insert $ Car "make3") p
+   _ <- runSqlPool (insert $ Person "George" (Just carId)) p
    return p
