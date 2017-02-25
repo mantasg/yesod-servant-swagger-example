@@ -17,13 +17,11 @@ import           GHC.Generics
 import           Data.Swagger hiding (get)
 import           Database.Persist.Sqlite
 import           Control.Monad.Logger (runStderrLoggingT)
-import           Control.Monad.Trans.Reader
 import           Data.Pool
 import           Control.Monad.Reader
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
   Car json
-    Id sql=custom_id
     make String
     deriving Generic
 |]
@@ -34,7 +32,7 @@ newtype Config = Config { getPool :: Pool SqlBackend }
 
 runDb :: (MonadBaseControl IO m, MonadReader Config m) => ReaderT SqlBackend m b -> m b
 runDb query = do
-   pool <- Control.Monad.Reader.asks getPool
+   pool <- asks getPool
    runSqlPool query pool
 
 makeSqlitePool :: IO (Pool SqlBackend)
