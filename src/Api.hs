@@ -19,7 +19,6 @@ module Api where
 import Data.Text        (Text)
 import Servant          hiding (Handler)
 import Yesod
-import GHC.Generics
 import Data.Swagger hiding (get)
 import Database.Persist.Sqlite
 import Control.Monad.Trans.Reader
@@ -30,12 +29,10 @@ import Servant.Swagger
 
 import Database
 import Model
-
+import AppM
 
 
 --- Transformer Stack to DB access
-type AppM = ReaderT Config (ExceptT ServantErr IO)
-
 readerToEither :: Config -> AppM :~> ExceptT ServantErr IO
 readerToEither cfg = Nat $ \x -> runReaderT x cfg
 
