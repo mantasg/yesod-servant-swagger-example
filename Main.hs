@@ -27,30 +27,17 @@ import           Servant.Swagger
 import           Control.Lens
 
 import           Database.Persist.Sqlite
-import           Control.Monad.Logger (runStderrLoggingT)
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.Except
-import           Data.Pool
-import           Control.Monad.Reader
 import GHC.Int (Int64)
 
 import EmbeddedAPI
+import Database
 
-share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
-Car json
-    Id sql=custom_id
-    make String
-    deriving Generic
-|]
 
-instance ToSchema Car
 
-newtype Config = Config { getPool :: Pool SqlBackend }
 
-runDb :: (MonadBaseControl IO m, MonadReader Config m) => ReaderT SqlBackend m b -> m b
-runDb query = do
-   pool <- Control.Monad.Reader.asks getPool
-   runSqlPool query pool
+
 
 
 type AppM = ReaderT Config (ExceptT ServantErr IO)
@@ -178,11 +165,6 @@ getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy PersonAPI)
   & info.version .~ "1.0"
   & applyTags [Tag "API Controller" (Just "API Controller Name") Nothing]
 
-makeSqlitePool :: IO (Pool SqlBackend)
-makeSqlitePool = do
-  p <- runStderrLoggingT $ createSqlitePool ":memory:" 10
-  runSqlPool (runMigration migrateAll) p
-  return p
 
 main :: IO ()
 main = do
