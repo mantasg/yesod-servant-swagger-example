@@ -5,7 +5,8 @@ build-type:         Simple
 
 executable          yesod-servant-test
   main-is:          Main.hs
-  
+  hs-source-dirs:   src
+
   ghc-options:      -Wall -fwarn-tabs -O2
 
   build-depends:  base
@@ -18,11 +19,10 @@ executable          yesod-servant-test
                 , swagger2
                 , servant-swagger
                 , lens
-                
-                , persistent  
-                , persistent-sqlite  
-                , persistent-template 
-                , monad-logger 
+                , persistent
+                , persistent-sqlite
+                , persistent-template
+                , monad-logger
                 , transformers
                 , either
                 , resource-pool
