@@ -48,7 +48,7 @@ server = getEntities
     :<|> responseHeader
     :<|> addCar
     :<|> getCars
-    :<|> getCar
+    :<|> getCarModel
     :<|> caseError
 
 

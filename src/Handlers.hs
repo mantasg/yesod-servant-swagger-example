@@ -27,7 +27,16 @@ getCars = runDb $ do
     b <- selectList [] [Asc CarMake]
     return $ map entityVal b
 
-type GetCar = "car" :> "get" :> Capture "id" Int64 :> Get '[JSON] (Maybe Car)
+type GetCar = "car" :> "get" :> Capture "id" Int64 :> Get '[JSON] CarModel
+
+getCarModel :: Int64 -> AppM CarModel
+getCarModel i = do
+  entity <- getCar i
+  case entity of
+      Nothing    -> throwError err404  { errBody = "Car not found" }
+      (Just car) -> return $ carFromEntity car
+
+-- This would go to seperate data access package
 getCar :: Int64 -> AppM (Maybe Car)
 getCar i = do
   car <- runDb $ get (toSqlKey i)
