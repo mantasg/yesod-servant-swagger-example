@@ -26,6 +26,8 @@ import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Except
 import GHC.Int (Int64)
 import Database
+import Control.Lens
+import Servant.Swagger
 
 --- Transformer Stack to DB access
 type AppM = ReaderT Config (ExceptT ServantErr IO)
@@ -123,3 +125,13 @@ failingHandler = throwError $ err401 { errBody = "Sorry dear user." }
 type ReturnHeader = "return-header"     :> Get '[PlainText] (Headers '[Servant.Header "SomeHeader" String] String)
 responseHeader :: AppM (Headers '[Servant.Header "SomeHeader" String] String)
 responseHeader = return $ Servant.addHeader "headerVal" "foo"
+
+
+
+--- Swagger Docs
+getSwagger :: Swagger
+getSwagger = toSwagger (Proxy :: Proxy PersonAPI)
+  & basePath .~ Just "/api"
+  & info.title   .~ "Todo API"
+  & info.version .~ "1.0"
+  & applyTags [Tag "API Controller" (Just "API Controller Name") Nothing]

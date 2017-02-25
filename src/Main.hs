@@ -20,9 +20,6 @@
 import           Servant          hiding (Handler)
 import           Yesod
 import           Yesod.Static
-import           Data.Swagger hiding (get)
-import           Servant.Swagger
-import           Control.Lens
 
 import EmbeddedAPI
 import Database
@@ -45,11 +42,8 @@ getHomeR :: Handler Html
 getHomeR = defaultLayout [whamlet|Hello World!|]
 
 getSwaggerR :: Handler Value
-getSwaggerR = return $ toJSON $ toSwagger (Proxy :: Proxy PersonAPI)
-  & basePath .~ Just "/api"
-  & info.title   .~ "Todo API"
-  & info.version .~ "1.0"
-  & applyTags [Tag "API Controller" (Just "API Controller Name") Nothing]
+getSwaggerR = return $ toJSON getSwagger
+
 
 main :: IO ()
 main = do
