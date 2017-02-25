@@ -21,26 +21,21 @@ addCar = do
   _ <- runDb $ insert $ Car "Foo"
   return "foo"
 
-type GetCars = "car"  :> "list" :> Get '[JSON] [Car]
-getCars :: AppM [Car]
+type GetCars = "car"  :> "list" :> Get '[JSON] [CarModel]
+getCars :: AppM [CarModel]
 getCars = runDb $ do
-    b <- selectList [] [Asc CarMake]
-    return $ map entityVal b
+    b <- selectList [] [Desc CarId]
+    let values = map carFromEntity b
+    return $ values
 
 type GetCar = "car" :> "get" :> Capture "id" Int64 :> Get '[JSON] CarModel
-
 getCarModel :: Int64 -> AppM CarModel
 getCarModel i = do
-  entity <- getCar i
+  entity <- runDb $ selectList [CarId <-. [(toSqlKey i :: Key Car)]] []
   case entity of
-      Nothing    -> throwError err404  { errBody = "Car not found" }
-      (Just car) -> return $ carFromEntity car
+        (x:_) -> return $ carFromEntity x
+        []    -> throwError err404  { errBody = "Car not found" }
 
--- This would go to seperate data access package
-getCar :: Int64 -> AppM (Maybe Car)
-getCar i = do
-  car <- runDb $ get (toSqlKey i)
-  return car
 
 
 type CaseError = "get1" :> Capture "str" String :> Get '[PlainText] String

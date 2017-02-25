@@ -5,8 +5,9 @@ module Model where
 import Yesod
 import GHC.Generics
 import Data.Swagger hiding (get)
-
+import GHC.Int
 import Database
+import Database.Persist.Sqlite
 
 data Entity' = Entity' { id :: Int, name :: String } deriving (Generic)
 instance ToJSON Entity'
@@ -17,9 +18,11 @@ instance ToJSON SampleRequest
 instance FromJSON SampleRequest
 instance ToSchema SampleRequest
 
-data CarModel = CarModel { make :: String  } deriving (Generic)
+data CarModel = CarModel { carId :: Int64, make :: String  } deriving (Generic)
 instance ToSchema CarModel
 instance ToJSON CarModel
 
-carFromEntity :: Car -> CarModel
-carFromEntity entity = CarModel (carMake entity)
+carFromEntity :: Entity Car -> CarModel
+carFromEntity entity = let key = entityKey entity
+                           value = entityVal entity
+                       in  CarModel (fromSqlKey key) (carMake value)
