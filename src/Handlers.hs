@@ -54,6 +54,20 @@ caseError str = do
     _       -> return str
 
 
+type AddJob = "job" :> "add" :> Get '[PlainText] String
+addJob :: AppM String
+addJob = runDb $ do
+  key <- insert $ Job "foo" Nothing
+  return $ show $ fromSqlKey key
+
+
+type GetJobs = "job" :> "list" :> Get '[JSON] [JobModel]
+getJobs :: AppM [JobModel]
+getJobs = runDb $ do
+  list <- selectList [] [Asc JobId]
+  return $ map jobFromEntity list
+
+
 
 -- Request handlers
 type GetEntities = "entity" :> "list"  :> Get '[JSON] [Entity']

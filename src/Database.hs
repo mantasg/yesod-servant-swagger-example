@@ -13,8 +13,6 @@
 module Database where
 
 import           Yesod
-import           GHC.Generics
-import           Data.Swagger hiding (get)
 import           Database.Persist.Sqlite
 import           Control.Monad.Logger (runStderrLoggingT)
 import           Data.Pool
@@ -23,14 +21,17 @@ import           Control.Monad.Reader
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
   Car json
     make String
-    deriving Generic
 
   Person json
     name String
+    address String Maybe
     carId CarId Maybe
-|]
 
-instance ToSchema Car
+  Job json
+    title String
+    description String Maybe
+    deriving
+|]
 
 newtype Config = Config { getPool :: Pool SqlBackend }
 
@@ -46,5 +47,6 @@ makeSqlitePool = do
    carId <- runSqlPool (insert $ Car "make1") p
    _ <- runSqlPool (insert $ Car "make2") p
    _ <- runSqlPool (insert $ Car "make3") p
-   _ <- runSqlPool (insert $ Person "George" (Just carId)) p
+   _ <- runSqlPool (insert $ Person "George" Nothing (Just carId)) p
+   _ <- runSqlPool (insert $ Person "John" (Just "address") (Just carId)) p
    return p

@@ -29,8 +29,9 @@ carFromEntity entity = let key = entityKey entity
                        in  CarModel (fromSqlKey key) (carMake value)
 
 
-data PersonModel = PersonModel { id :: Int64
+data PersonModel = PersonModel { id :: Maybe Int64
                                , name :: String
+                               , address :: Maybe String
                                , carId :: Maybe Int64
                                } deriving Generic
 
@@ -40,7 +41,26 @@ instance ToJSON PersonModel
 personFromEntity :: Entity Person -> PersonModel
 personFromEntity entity = let key = entityKey entity
                               value = entityVal entity
-                          in  PersonModel { id = fromSqlKey key
+                          in  PersonModel { id = Just $ fromSqlKey key
                                           , name = personName value
+                                          , address = personAddress value
                                           , carId = fromSqlKey <$> personCarId value
                                           }
+
+
+data JobModel = JobModel { id :: Maybe Int64
+                         , title :: String
+                         , description :: Maybe String
+                         } deriving Generic
+
+instance ToSchema JobModel
+instance ToJSON JobModel
+
+
+jobFromEntity :: Entity Job -> JobModel
+jobFromEntity entity = let key = entityKey entity
+                           value = entityVal entity
+                       in JobModel { id = Just $ fromSqlKey key
+                                   , title = jobTitle value
+                                   , description = jobDescription value
+                                   }
