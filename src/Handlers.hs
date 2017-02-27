@@ -30,10 +30,10 @@ getCars = runDb $ do
 type GetCar = "car" :> "get" :> Capture "id" Int64 :> Get '[JSON] CarModel
 getCarModel :: Int64 -> AppM CarModel
 getCarModel i = do
-  entity <- runDb $ selectList [CarId <-. [(toSqlKey i :: Key Car)]] []
+  entity <- runDb $ selectFirst [CarId <-. [(toSqlKey i :: Key Car)]] []
   case entity of
-        (x:_) -> return $ fromEntity x
-        []    -> throwError err404  { errBody = "Car not found" }
+        (Just x) -> return $ fromEntity x
+        Nothing  -> throwError err404  { errBody = "Car not found" }  
 
 
 type GetPersons = "person"  :> "list" :> Get '[JSON] [PersonModel]
