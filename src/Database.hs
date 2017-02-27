@@ -14,6 +14,7 @@ module Database where
 
 import           Yesod
 import           Database.Persist.Sqlite
+import           Database.Persist.Postgresql
 import           Control.Monad.Logger (runStderrLoggingT)
 import           Data.Pool
 import           Control.Monad.Reader
@@ -50,3 +51,13 @@ makeSqlitePool = do
    _ <- runSqlPool (insert $ Person "George" Nothing (Just carId)) p
    _ <- runSqlPool (insert $ Person "John" (Just "address") (Just carId)) p
    return p
+   
+   
+makePostgresPool :: IO (Pool SqlBackend)
+makePostgresPool = do
+  p <- runStderrLoggingT $ createPostgresqlPool "host=localhost dbname=postgres user=postgres password=postgres port=5432" 10
+  --runSqlPool (runMigration migrateAll) p
+  return p
+     
+
+   

@@ -20,6 +20,7 @@ executable          yesod-servant-test
                 , servant-swagger
                 , lens
                 , persistent
+                , persistent-postgresql  
                 , persistent-sqlite
                 , persistent-template
                 , monad-logger

@@ -35,6 +35,7 @@ getSwaggerR = return $ toJSON getSwagger
 main :: IO ()
 main = do
   pool <- makeSqlitePool
+  --pool <- makePostgresPool
   let myServer = readerServer (Config pool)
   let api = serve (Proxy :: Proxy PersonAPI) myServer
   static' <- static "static"
