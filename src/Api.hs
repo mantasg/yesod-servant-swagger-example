@@ -21,11 +21,11 @@ import Handlers
 readerToEither :: Config -> AppM :~> ExceptT ServantErr IO
 readerToEither cfg = Nat $ \x -> runReaderT x cfg
 
-readerServer :: Config -> Server PersonAPI
+readerServer :: Config -> Server CombinedAPI
 readerServer cfg = enter (readerToEither cfg) server
 
 
-type PersonAPI =  WithHeader
+type CombinedAPI =  WithHeader
              :<|> ReturnHeader
              :<|> AddCar
              :<|> GetCars
@@ -37,7 +37,7 @@ type PersonAPI =  WithHeader
              :<|> GetJob
 
 
-server :: ServerT PersonAPI AppM
+server :: ServerT CombinedAPI AppM
 server = withHeader
     :<|> responseHeader
     :<|> addCar
@@ -53,7 +53,7 @@ server = withHeader
 
 --- Swagger Docs
 getSwagger :: Swagger
-getSwagger = toSwagger (Proxy :: Proxy PersonAPI)
+getSwagger = toSwagger (Proxy :: Proxy CombinedAPI)
   & basePath .~ Just "/api"
   & info.title   .~ "Todo API"
   & info.version .~ "1.0"

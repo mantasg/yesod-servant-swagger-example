@@ -37,6 +37,6 @@ main = do
   pool <- makeSqlitePool
   --pool <- makePostgresPool
   let myServer = readerServer (Config pool)
-  let api = serve (Proxy :: Proxy PersonAPI) myServer
+  let api = serve (Proxy :: Proxy CombinedAPI) myServer
   static' <- static "static"
   warp 3000 (App (EmbeddedAPI api) static')
