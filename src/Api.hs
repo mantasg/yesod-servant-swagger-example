@@ -23,33 +23,45 @@ readerToEither cfg = Nat $ \x -> runReaderT x cfg
 
 readerServer :: Config -> Server CombinedAPI
 readerServer cfg = enter (readerToEither cfg) server
+---
 
-
-type CombinedAPI =  WithHeader
-             :<|> ReturnHeader
-             :<|> AddCar
-             :<|> GetCars
-             :<|> GetCar
-             :<|> CaseError
-             :<|> GetPersons
-             :<|> AddJob
-             :<|> GetJobs
-             :<|> GetJob
-
-
-server :: ServerT CombinedAPI AppM
-server = withHeader
-    :<|> responseHeader
-    :<|> addCar
+type CarAPI = AddCar
+         :<|> GetCars
+         :<|> GetCar
+         
+carApi :: ServerT CarAPI AppM
+carApi = addCar
     :<|> getCars
     :<|> getCarModel
-    :<|> caseError
-    :<|> getPersons
-    :<|> addJob
+---
+
+type PersonAPI = GetPersons
+personApi :: ServerT PersonAPI AppM
+personApi = getPersons
+---
+
+type JobAPI = AddJob
+         :<|> GetJobs
+         :<|> GetJob
+
+jobApi :: ServerT JobAPI AppM
+jobApi = addJob
     :<|> getJobs
     :<|> getJob
+---
 
+type CombinedAPI = CarAPI  
+             :<|> PersonAPI 
+             :<|> JobAPI
+             :<|> WithHeader
+             :<|> ReturnHeader
+             :<|> CaseError
 
+server :: ServerT CombinedAPI AppM
+server = carApi :<|> personApi :<|> jobApi
+    :<|> withHeader
+    :<|> responseHeader
+    :<|> caseError
 
 --- Swagger Docs
 getSwagger :: Swagger
