@@ -14,14 +14,26 @@ import Database
 import Model
 
 
-type AddCar =   "car" :> "add" 
-             :> ReqBody '[JSON] CarModel 
+type AddCar =   "car" :> "add"
+             :> ReqBody '[JSON] CarModel
              :> Post '[PlainText] String
-             
+
 addCar :: CarModel -> AppM String
 addCar carModel = do
   entity <- runDb $ insert $ (toEntity carModel :: Car)
   return $ show (fromSqlKey entity)
+
+type UpdateCar =   "car" :> "update"
+             :> ReqBody '[JSON] CarModel
+             :> Post '[PlainText] String
+
+updateCar :: CarModel -> AppM String
+updateCar carModel = do
+  let key = toCarId carModel
+  runDb $ update key (toCarUpdate carModel)
+  return $ show (fromSqlKey key)
+
+
 
 type GetCars = "car"  :> "list" :> Get '[JSON] [CarModel]
 getCars :: AppM [CarModel]
@@ -35,28 +47,28 @@ getCarModel i = do
   entity <- runDb $ selectFirst [CarId <-. [(toSqlKey i :: Key Car)]] []
   case entity of
         (Just x) -> return $ fromEntity x
-        Nothing  -> throwError err404  { errBody = "Car not found" }  
+        Nothing  -> throwError err404  { errBody = "Car not found" }
 
 
-type AddPerson =  "person" :> "add" 
+type AddPerson =  "person" :> "add"
                 :> ReqBody '[JSON] PersonModel
                 :> Post '[PlainText] String
 
 addPerson :: PersonModel -> AppM String
-addPerson model = do 
+addPerson model = do
   key <- runDb $ insert $ (toEntity  model :: Person)
   return $ show (fromSqlKey key)
-                
-type GetPerson =  "person" :> "get" 
-               :> Capture "id" Int64 
+
+type GetPerson =  "person" :> "get"
+               :> Capture "id" Int64
                :> Get '[JSON] PersonModel
 
 getPerson :: Int64 -> AppM PersonModel
 getPerson i = do
-  entity <- runDb $ selectFirst [PersonId <-. [(toSqlKey i :: Key Person)]] []                 
+  entity <- runDb $ selectFirst [PersonId <-. [(toSqlKey i :: Key Person)]] []
   case entity of
         (Just x) -> return $ fromEntity x
-        Nothing  -> throwError err404  { errBody = "Person not found" }  
+        Nothing  -> throwError err404  { errBody = "Person not found" }
 
 
 type GetPersons = "person"  :> "list" :> Get '[JSON] [PersonModel]
@@ -88,17 +100,17 @@ getJobs :: AppM [JobModel]
 getJobs = runDb $ do
   list <- selectList [] [Asc JobId]
   return $ map fromEntity list
-  
+
 type GetJob = "job" :> "get" :> QueryParam "id" Int64 :>  Get '[JSON] JobModel
 getJob :: Maybe Int64 -> AppM JobModel
 getJob i =  case i of
-  Nothing -> throwError err400  { errBody = "Invalid ID" }  
-  (Just i') -> runDb $ do 
+  Nothing -> throwError err400  { errBody = "Invalid ID" }
+  (Just i') -> runDb $ do
     entity <- selectFirst [JobId <-. [(toSqlKey i' :: Key Job)]] []
-    case entity of 
+    case entity of
       (Just job) -> return $ fromEntity job
-      Nothing    -> throwError err404  { errBody = "Job not found" }  
-  
+      Nothing    -> throwError err404  { errBody = "Job not found" }
+
 
 
 

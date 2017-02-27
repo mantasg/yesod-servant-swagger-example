@@ -26,21 +26,23 @@ readerServer cfg = enter (readerToEither cfg) server
 ---
 
 type CarAPI = AddCar
+         :<|> UpdateCar
          :<|> GetCars
          :<|> GetCar
-         
+
 carApi :: ServerT CarAPI AppM
 carApi = addCar
+    :<|> updateCar
     :<|> getCars
     :<|> getCarModel
 ---
 
-type PersonAPI = AddPerson 
+type PersonAPI = AddPerson
             :<|> GetPerson
             :<|> GetPersons
-            
+
 personApi :: ServerT PersonAPI AppM
-personApi = addPerson 
+personApi = addPerson
        :<|> getPerson
        :<|> getPersons
 ---
@@ -55,8 +57,8 @@ jobApi = addJob
     :<|> getJob
 ---
 
-type CombinedAPI = CarAPI  
-             :<|> PersonAPI 
+type CombinedAPI = CarAPI
+             :<|> PersonAPI
              :<|> JobAPI
              :<|> WithHeader
              :<|> ReturnHeader

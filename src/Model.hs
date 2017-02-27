@@ -23,7 +23,14 @@ instance FromJSON CarModel
 instance ApiModel CarModel Car where
   toEntity m = Car { carMake = make m }
   fromEntity e = let value = entityVal e
-                 in  CarModel { id = Just  (fromSqlKey (entityKey e)), make = carMake value }               
+                 in  CarModel { id = Just  (fromSqlKey (entityKey e)), make = carMake value }
+
+toCarId :: CarModel -> Key Car
+toCarId (CarModel (Just i) _) = toSqlKey i
+
+toCarUpdate :: CarModel -> [Update Car]
+toCarUpdate carModel = [CarMake =. make carModel]
+
 --- Person
 data PersonModel = PersonModel { id :: Maybe Int64
                                , name :: String
@@ -34,7 +41,7 @@ data PersonModel = PersonModel { id :: Maybe Int64
 instance ToSchema PersonModel
 instance ToJSON PersonModel
 instance FromJSON PersonModel
-instance ApiModel PersonModel Person where 
+instance ApiModel PersonModel Person where
   toEntity (PersonModel _ name' address' carId') = Person name' address' (toSqlKey <$> carId')
   fromEntity e = let value = entityVal e
                  in  PersonModel { id = Just $ fromSqlKey (entityKey e)
