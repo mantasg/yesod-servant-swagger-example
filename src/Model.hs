@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Model where
 
@@ -19,16 +20,22 @@ instance ToJSON SampleRequest
 instance FromJSON SampleRequest
 instance ToSchema SampleRequest
 
+
+
+
+class ApiModel a e where
+  toEntity :: a -> e
+  fromEntity :: Entity e -> a
+
+--- Car
 data CarModel = CarModel { id :: Int64, make :: String  } deriving (Generic)
 instance ToSchema CarModel
 instance ToJSON CarModel
-
-carFromEntity :: Entity Car -> CarModel
-carFromEntity entity = let key = entityKey entity
-                           value = entityVal entity
-                       in  CarModel (fromSqlKey key) (carMake value)
-
-
+instance ApiModel CarModel Car where
+  toEntity m = Car { carMake = make m }
+  fromEntity e = let value = entityVal e
+                 in  CarModel { id = fromSqlKey (entityKey e), make = carMake value }               
+--- Person
 data PersonModel = PersonModel { id :: Maybe Int64
                                , name :: String
                                , address :: Maybe String
@@ -37,17 +44,15 @@ data PersonModel = PersonModel { id :: Maybe Int64
 
 instance ToSchema PersonModel
 instance ToJSON PersonModel
-
-personFromEntity :: Entity Person -> PersonModel
-personFromEntity entity = let key = entityKey entity
-                              value = entityVal entity
-                          in  PersonModel { id = Just $ fromSqlKey key
-                                          , name = personName value
-                                          , address = personAddress value
-                                          , carId = fromSqlKey <$> personCarId value
-                                          }
-
-
+instance ApiModel PersonModel Person where 
+  toEntity (PersonModel _ name' address' carId') = Person name' address' (toSqlKey <$> carId')
+  fromEntity e = let value = entityVal e
+                 in  PersonModel { id = Just $ fromSqlKey (entityKey e)
+                                 , name = personName value
+                                 , address = personAddress value
+                                 , carId = fromSqlKey <$> personCarId value
+                                 }
+--- Job
 data JobModel = JobModel { id :: Maybe Int64
                          , title :: String
                          , description :: Maybe String
@@ -55,12 +60,10 @@ data JobModel = JobModel { id :: Maybe Int64
 
 instance ToSchema JobModel
 instance ToJSON JobModel
-
-
-jobFromEntity :: Entity Job -> JobModel
-jobFromEntity entity = let key = entityKey entity
-                           value = entityVal entity
-                       in JobModel { id = Just $ fromSqlKey key
-                                   , title = jobTitle value
-                                   , description = jobDescription value
-                                   }
+instance ApiModel JobModel Job where
+  toEntity (JobModel _ title' description') = Job title' description'
+  fromEntity e = let value = entityVal e
+                 in  JobModel { id = Just $ fromSqlKey (entityKey e)
+                              , title = jobTitle value
+                              , description = jobDescription value
+                              }

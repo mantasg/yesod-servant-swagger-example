@@ -58,6 +58,3 @@ makePostgresPool = do
   p <- runStderrLoggingT $ createPostgresqlPool "host=localhost dbname=postgres user=postgres password=postgres port=5432" 10
   --runSqlPool (runMigration migrateAll) p
   return p
-     
-
-   

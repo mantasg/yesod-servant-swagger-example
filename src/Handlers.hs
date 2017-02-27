@@ -25,14 +25,14 @@ type GetCars = "car"  :> "list" :> Get '[JSON] [CarModel]
 getCars :: AppM [CarModel]
 getCars = runDb $ do
     b <- selectList [] [Desc CarId]
-    return $ map carFromEntity b
+    return $ map fromEntity b
 
 type GetCar = "car" :> "get" :> Capture "id" Int64 :> Get '[JSON] CarModel
 getCarModel :: Int64 -> AppM CarModel
 getCarModel i = do
   entity <- runDb $ selectList [CarId <-. [(toSqlKey i :: Key Car)]] []
   case entity of
-        (x:_) -> return $ carFromEntity x
+        (x:_) -> return $ fromEntity x
         []    -> throwError err404  { errBody = "Car not found" }
 
 
@@ -40,7 +40,7 @@ type GetPersons = "person"  :> "list" :> Get '[JSON] [PersonModel]
 getPersons :: AppM [PersonModel]
 getPersons = runDb $ do
   list <- selectList [] [Asc PersonId]
-  return $ map personFromEntity list
+  return $ map fromEntity list
 
 
 
@@ -65,7 +65,7 @@ type GetJobs = "job" :> "list" :> Get '[JSON] [JobModel]
 getJobs :: AppM [JobModel]
 getJobs = runDb $ do
   list <- selectList [] [Asc JobId]
-  return $ map jobFromEntity list
+  return $ map fromEntity list
 
 
 
