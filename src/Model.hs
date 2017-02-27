@@ -16,13 +16,14 @@ class ApiModel a e where
   fromEntity :: Entity e -> a
 
 --- Car
-data CarModel = CarModel { id :: Int64, make :: String  } deriving (Generic)
+data CarModel = CarModel { id :: Maybe Int64, make :: String  } deriving (Generic)
 instance ToSchema CarModel
 instance ToJSON CarModel
+instance FromJSON CarModel
 instance ApiModel CarModel Car where
   toEntity m = Car { carMake = make m }
   fromEntity e = let value = entityVal e
-                 in  CarModel { id = fromSqlKey (entityKey e), make = carMake value }               
+                 in  CarModel { id = Just  (fromSqlKey (entityKey e)), make = carMake value }               
 --- Person
 data PersonModel = PersonModel { id :: Maybe Int64
                                , name :: String

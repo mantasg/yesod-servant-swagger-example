@@ -14,11 +14,15 @@ import Database
 import Model
 
 
-type AddCar = "car" :> "add" :> Get '[PlainText] String
-addCar :: AppM String
-addCar = do
-  _ <- runDb $ insert $ Car "Foo"
-  return "foo"
+type AddCar =   "car" :> "add" 
+             :> ReqBody '[JSON] CarModel 
+             :> Post '[PlainText] String
+             
+addCar :: CarModel -> AppM String
+addCar carModel = do
+  entity <- runDb $ insert $ (toEntity carModel :: Car)
+  let i = fromSqlKey entity
+  return $ show i 
 
 type GetCars = "car"  :> "list" :> Get '[JSON] [CarModel]
 getCars :: AppM [CarModel]
