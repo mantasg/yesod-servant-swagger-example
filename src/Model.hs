@@ -13,6 +13,7 @@ import Database.Persist.Sqlite
 
 class ApiModel a e where
   toEntity :: a -> e
+  toKey :: a -> Key e
   fromEntity :: Entity e -> a
 
 --- Car
@@ -22,11 +23,9 @@ instance ToJSON CarModel
 instance FromJSON CarModel
 instance ApiModel CarModel Car where
   toEntity m = Car { carMake = make m }
+  toKey (CarModel (Just i) _) = toSqlKey i -- TODO
   fromEntity e = let value = entityVal e
                  in  CarModel { id = Just  (fromSqlKey (entityKey e)), make = carMake value }
-
-toCarId :: CarModel -> Key Car
-toCarId (CarModel (Just i) _) = toSqlKey i
 
 toCarUpdate :: CarModel -> [Update Car]
 toCarUpdate carModel = [CarMake =. make carModel]
@@ -43,6 +42,7 @@ instance ToJSON PersonModel
 instance FromJSON PersonModel
 instance ApiModel PersonModel Person where
   toEntity (PersonModel _ name' address' carId') = Person name' address' (toSqlKey <$> carId')
+  toKey = undefined -- TODO
   fromEntity e = let value = entityVal e
                  in  PersonModel { id = Just $ fromSqlKey (entityKey e)
                                  , name = personName value
@@ -60,6 +60,7 @@ instance ToJSON JobModel
 instance FromJSON JobModel
 instance ApiModel JobModel Job where
   toEntity (JobModel _ title' description') = Job title' description'
+  toKey = undefined
   fromEntity e = let value = entityVal e
                  in  JobModel { id = Just $ fromSqlKey (entityKey e)
                               , title = jobTitle value
