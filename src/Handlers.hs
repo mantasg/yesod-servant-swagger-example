@@ -34,6 +34,16 @@ updateCar carModel = do
   return $ show (fromSqlKey key)
 
 
+type DeleteCar = "car" :> "delete"
+              :> Capture "id" Int64
+              :> Delete '[PlainText] String
+
+deleteCar :: Int64 -> AppM String
+deleteCar i = do
+  d <- runDb $ delete (toSqlKey i :: Key Car)
+  return ""
+
+
 
 type GetCars = "car"  :> "list" :> Get '[JSON] [CarModel]
 getCars :: AppM [CarModel]

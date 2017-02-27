@@ -29,12 +29,14 @@ type CarAPI = AddCar
          :<|> UpdateCar
          :<|> GetCars
          :<|> GetCar
+         :<|> DeleteCar
 
 carApi :: ServerT CarAPI AppM
 carApi = addCar
     :<|> updateCar
     :<|> getCars
     :<|> getCarModel
+    :<|> deleteCar
 ---
 
 type PersonAPI = AddPerson
