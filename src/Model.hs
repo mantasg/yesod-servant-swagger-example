@@ -9,11 +9,12 @@ import GHC.Generics
 import Data.Swagger hiding (get)
 import GHC.Int
 import Database
-import Database.Persist.Sqlite
+import Database.Persist.Sql
 
 class ApiModel a e where
   toEntity :: a -> e
   toKey :: a -> Key e
+  toUpdate :: a -> [Update e]
   fromEntity :: Entity e -> a
 
 --- Car
@@ -24,11 +25,10 @@ instance FromJSON CarModel
 instance ApiModel CarModel Car where
   toEntity m = Car { carMake = make m }
   toKey (CarModel (Just i) _) = toSqlKey i -- TODO
+  toUpdate (CarModel _ m) = [CarMake =. m]
   fromEntity e = let value = entityVal e
                  in  CarModel { id = Just  (fromSqlKey (entityKey e)), make = carMake value }
 
-toCarUpdate :: CarModel -> [Update Car]
-toCarUpdate carModel = [CarMake =. make carModel]
 
 --- Person
 data PersonModel = PersonModel { id :: Maybe Int64
@@ -43,6 +43,7 @@ instance FromJSON PersonModel
 instance ApiModel PersonModel Person where
   toEntity (PersonModel _ name' address' carId') = Person name' address' (toSqlKey <$> carId')
   toKey = undefined -- TODO
+  toUpdate = undefined -- TODO
   fromEntity e = let value = entityVal e
                  in  PersonModel { id = Just $ fromSqlKey (entityKey e)
                                  , name = personName value
@@ -60,7 +61,8 @@ instance ToJSON JobModel
 instance FromJSON JobModel
 instance ApiModel JobModel Job where
   toEntity (JobModel _ title' description') = Job title' description'
-  toKey = undefined
+  toKey = undefined -- TODO
+  toUpdate = undefined -- TODO
   fromEntity e = let value = entityVal e
                  in  JobModel { id = Just $ fromSqlKey (entityKey e)
                               , title = jobTitle value

@@ -30,7 +30,7 @@ type UpdateCar =   "car" :> "update"
 updateCar :: CarModel -> AppM String
 updateCar carModel = do
   let key = toKey carModel
-  runDb $ update key (toCarUpdate carModel)
+  runDb $ update key (toUpdate carModel :: [Update Car])
   return $ show (fromSqlKey key)
 
 
