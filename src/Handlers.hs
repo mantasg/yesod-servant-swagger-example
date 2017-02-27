@@ -4,7 +4,6 @@
 
 module Handlers where
 
-import Data.Text        (Text)
 import Servant          hiding (Handler)
 import Yesod
 import Database.Persist.Sqlite
@@ -60,21 +59,26 @@ addJob model = runDb $ do
   key <- insert (toEntity model :: Job)
   return $ show $ fromSqlKey key
 
-
 type GetJobs = "job" :> "list" :> Get '[JSON] [JobModel]
 getJobs :: AppM [JobModel]
 getJobs = runDb $ do
   list <- selectList [] [Asc JobId]
   return $ map fromEntity list
+  
+type GetJob = "job" :> "get" :> QueryParam "id" Int64 :>  Get '[JSON] JobModel
+getJob :: Maybe Int64 -> AppM JobModel
+getJob i =  case i of
+  Nothing -> throwError err400  { errBody = "Invalid ID" }  
+  (Just i') -> runDb $ do 
+    entity <- selectFirst [JobId <-. [(toSqlKey i' :: Key Job)]] []
+    case entity of 
+      (Just job) -> return $ fromEntity job
+      Nothing    -> throwError err404  { errBody = "Job not found" }  
+  
 
 
 
 -- Request handlers
-type Echo = "echo"        :> QueryParam "text" Text
-                          :> Get '[PlainText] String
-echo :: Maybe Text -> AppM String
-echo = return . show
----
 type WithHeader = "with-header"       :> Servant.Header "Header" String
                                       :> Get '[PlainText] String
 withHeader :: Maybe String -> AppM String

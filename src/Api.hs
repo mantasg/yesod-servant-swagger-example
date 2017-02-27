@@ -25,8 +25,7 @@ readerServer :: Config -> Server PersonAPI
 readerServer cfg = enter (readerToEither cfg) server
 
 
-type PersonAPI =  Echo
-             :<|> WithHeader
+type PersonAPI =  WithHeader
              :<|> WithError
              :<|> ReturnHeader
              :<|> AddCar
@@ -36,11 +35,11 @@ type PersonAPI =  Echo
              :<|> GetPersons
              :<|> AddJob
              :<|> GetJobs
+             :<|> GetJob
 
 
 server :: ServerT PersonAPI AppM
-server = echo
-    :<|> withHeader
+server = withHeader
     :<|> failingHandler
     :<|> responseHeader
     :<|> addCar
@@ -50,6 +49,7 @@ server = echo
     :<|> getPersons
     :<|> addJob
     :<|> getJobs
+    :<|> getJob
 
 
 
