@@ -33,6 +33,7 @@ data PersonModel = PersonModel { id :: Maybe Int64
 
 instance ToSchema PersonModel
 instance ToJSON PersonModel
+instance FromJSON PersonModel
 instance ApiModel PersonModel Person where 
   toEntity (PersonModel _ name' address' carId') = Person name' address' (toSqlKey <$> carId')
   fromEntity e = let value = entityVal e

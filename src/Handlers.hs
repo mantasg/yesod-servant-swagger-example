@@ -21,8 +21,7 @@ type AddCar =   "car" :> "add"
 addCar :: CarModel -> AppM String
 addCar carModel = do
   entity <- runDb $ insert $ (toEntity carModel :: Car)
-  let i = fromSqlKey entity
-  return $ show i 
+  return $ show (fromSqlKey entity)
 
 type GetCars = "car"  :> "list" :> Get '[JSON] [CarModel]
 getCars :: AppM [CarModel]
@@ -37,6 +36,27 @@ getCarModel i = do
   case entity of
         (Just x) -> return $ fromEntity x
         Nothing  -> throwError err404  { errBody = "Car not found" }  
+
+
+type AddPerson =  "person" :> "add" 
+                :> ReqBody '[JSON] PersonModel
+                :> Post '[PlainText] String
+
+addPerson :: PersonModel -> AppM String
+addPerson model = do 
+  key <- runDb $ insert $ (toEntity  model :: Person)
+  return $ show (fromSqlKey key)
+                
+type GetPerson =  "person" :> "get" 
+               :> Capture "id" Int64 
+               :> Get '[JSON] PersonModel
+
+getPerson :: Int64 -> AppM PersonModel
+getPerson i = do
+  entity <- runDb $ selectFirst [PersonId <-. [(toSqlKey i :: Key Person)]] []                 
+  case entity of
+        (Just x) -> return $ fromEntity x
+        Nothing  -> throwError err404  { errBody = "Person not found" }  
 
 
 type GetPersons = "person"  :> "list" :> Get '[JSON] [PersonModel]

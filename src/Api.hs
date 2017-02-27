@@ -35,9 +35,14 @@ carApi = addCar
     :<|> getCarModel
 ---
 
-type PersonAPI = GetPersons
+type PersonAPI = AddPerson 
+            :<|> GetPerson
+            :<|> GetPersons
+            
 personApi :: ServerT PersonAPI AppM
-personApi = getPersons
+personApi = addPerson 
+       :<|> getPerson
+       :<|> getPersons
 ---
 
 type JobAPI = AddJob
