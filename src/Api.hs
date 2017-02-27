@@ -26,7 +26,6 @@ readerServer cfg = enter (readerToEither cfg) server
 
 
 type PersonAPI =  WithHeader
-             :<|> WithError
              :<|> ReturnHeader
              :<|> AddCar
              :<|> GetCars
@@ -40,7 +39,6 @@ type PersonAPI =  WithHeader
 
 server :: ServerT PersonAPI AppM
 server = withHeader
-    :<|> failingHandler
     :<|> responseHeader
     :<|> addCar
     :<|> getCars

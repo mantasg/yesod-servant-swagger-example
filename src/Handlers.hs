@@ -84,10 +84,6 @@ type WithHeader = "with-header"       :> Servant.Header "Header" String
 withHeader :: Maybe String -> AppM String
 withHeader = return . show
 ---
-type WithError = "with-error"        :> Get '[PlainText] String
-failingHandler :: AppM String
-failingHandler = throwError $ err401 { errBody = "Sorry dear user." }
----
 type ReturnHeader = "return-header"     :> Get '[PlainText] (Headers '[Servant.Header "SomeHeader" String] String)
 responseHeader :: AppM (Headers '[Servant.Header "SomeHeader" String] String)
 responseHeader = return $ Servant.addHeader "headerVal" "foo"
