@@ -25,10 +25,7 @@ readerServer :: Config -> Server PersonAPI
 readerServer cfg = enter (readerToEither cfg) server
 
 
-type PersonAPI =  GetEntities
-             :<|> GetEntity
-             :<|> Echo
-             :<|> ProcessRequest
+type PersonAPI =  Echo
              :<|> WithHeader
              :<|> WithError
              :<|> ReturnHeader
@@ -42,10 +39,7 @@ type PersonAPI =  GetEntities
 
 
 server :: ServerT PersonAPI AppM
-server = getEntities
-    :<|> getEntity
-    :<|> echo
-    :<|> processRequest
+server = echo
     :<|> withHeader
     :<|> failingHandler
     :<|> responseHeader

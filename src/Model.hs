@@ -11,18 +11,6 @@ import GHC.Int
 import Database
 import Database.Persist.Sqlite
 
-data Entity' = Entity' { id :: Int, name :: String } deriving (Generic)
-instance ToJSON Entity'
-instance ToSchema Entity'
-
-data SampleRequest = SampleRequest { field1  :: String, field2 :: Maybe String } deriving (Generic)
-instance ToJSON SampleRequest
-instance FromJSON SampleRequest
-instance ToSchema SampleRequest
-
-
-
-
 class ApiModel a e where
   toEntity :: a -> e
   fromEntity :: Entity e -> a
@@ -60,6 +48,7 @@ data JobModel = JobModel { id :: Maybe Int64
 
 instance ToSchema JobModel
 instance ToJSON JobModel
+instance FromJSON JobModel
 instance ApiModel JobModel Job where
   toEntity (JobModel _ title' description') = Job title' description'
   fromEntity e = let value = entityVal e

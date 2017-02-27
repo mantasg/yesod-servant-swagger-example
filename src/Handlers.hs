@@ -54,10 +54,10 @@ caseError str = do
     _       -> return str
 
 
-type AddJob = "job" :> "add" :> Get '[PlainText] String
-addJob :: AppM String
-addJob = runDb $ do
-  key <- insert $ Job "foo" Nothing
+type AddJob = "job" :> "add" :> ReqBody '[JSON] JobModel :> Post '[PlainText] String
+addJob :: JobModel -> AppM String
+addJob model = runDb $ do
+  key <- insert (toEntity model :: Job)
   return $ show $ fromSqlKey key
 
 
@@ -70,25 +70,10 @@ getJobs = runDb $ do
 
 
 -- Request handlers
-type GetEntities = "entity" :> "list"  :> Get '[JSON] [Entity']
-getEntities :: AppM [Entity']
-getEntities = return [ Entity' 1 "One" ]
----
-type GetEntity =  "entity" :>  "get"  :> Capture "id" Int
-                                      :> Capture "name" String
-                                      :> Get '[JSON] Entity'
-getEntity :: Int -> String -> AppM Entity'
-getEntity i username = return $ Entity' i username
----
 type Echo = "echo"        :> QueryParam "text" Text
                           :> Get '[PlainText] String
 echo :: Maybe Text -> AppM String
 echo = return . show
----
-type ProcessRequest = "process-request"   :> ReqBody '[JSON] SampleRequest
-                                          :> Post '[PlainText] String
-processRequest :: SampleRequest -> AppM String
-processRequest = return . field1
 ---
 type WithHeader = "with-header"       :> Servant.Header "Header" String
                                       :> Get '[PlainText] String
