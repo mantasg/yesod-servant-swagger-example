@@ -17,7 +17,7 @@ executable          yesod-servant-test
                 , servant-server
                 , text
                 , swagger2
-                , servant-swagger
+                , servant-swagger >= 1.1
                 , lens
                 , persistent
                 , persistent-postgresql  
@@ -28,5 +28,7 @@ executable          yesod-servant-test
                 , either
                 , resource-pool
                 , mtl
+                , aeson
+                , bytestring
 
   ghc-options:    -threaded -O2 -rtsopts -with-rtsopts=-N

@@ -12,6 +12,7 @@ import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Except
 import Control.Lens
 import Servant.Swagger
+import Data.Aeson
 
 import Database
 import AppM

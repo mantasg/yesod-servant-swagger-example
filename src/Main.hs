@@ -7,6 +7,9 @@
 import           Servant          hiding (Handler)
 import           Yesod
 import           Yesod.Static
+import Data.Aeson
+import Data.ByteString.Lazy.Char8
+
 
 import EmbeddedAPI
 import Database
@@ -28,8 +31,8 @@ mkYesod "App" [parseRoutes|
 getHomeR :: Handler Html
 getHomeR = defaultLayout [whamlet|Hello World!|]
 
-getSwaggerR :: Handler Value
-getSwaggerR = return $ toJSON getSwagger
+getSwaggerR :: Handler String
+getSwaggerR = return $ unpack $ encode getSwagger
 
 
 main :: IO ()
