@@ -20,7 +20,7 @@ type AddCar =   "car" :> "add"
 
 addCar :: CarModel -> AppM String
 addCar carModel = do
-  entity <- runDb $ insert $ (toEntity carModel :: Car)
+  entity <- runDb $ insert $ (toEntity carModel)
   return $ show (fromSqlKey entity)
 
 type UpdateCar =   "car" :> "update"
@@ -30,7 +30,7 @@ type UpdateCar =   "car" :> "update"
 updateCar :: CarModel -> AppM String
 updateCar carModel = do
   let key = toKey carModel
-  runDb $ update key (toUpdate carModel :: [Update Car])
+  runDb $ update key (toUpdate carModel)
   return $ show (fromSqlKey key)
 
 
@@ -54,7 +54,7 @@ getCars = runDb $ do
 type GetCar = "car" :> "get" :> Capture "id" Int64 :> Get '[JSON] CarModel
 getCarModel :: Int64 -> AppM CarModel
 getCarModel i = do
-  entity <- runDb $ selectFirst [CarId <-. [(toSqlKey i :: Key Car)]] []
+  entity <- runDb $ selectFirst [CarId <-. [(toSqlKey i)]] []
   case entity of
         (Just x) -> return $ fromEntity x
         Nothing  -> throwError err404  { errBody = "Car not found" }
@@ -66,7 +66,7 @@ type AddPerson =  "person" :> "add"
 
 addPerson :: PersonModel -> AppM String
 addPerson model = do
-  key <- runDb $ insert $ (toEntity  model :: Person)
+  key <- runDb $ insert $ (toEntity  model)
   return $ show (fromSqlKey key)
 
 type GetPerson =  "person" :> "get"
@@ -130,6 +130,8 @@ type WithHeader = "with-header"       :> Servant.Header "Header" String
 withHeader :: Maybe String -> AppM String
 withHeader = return . show
 ---
-type ReturnHeader = "return-header"     :> Get '[PlainText] (Headers '[Servant.Header "SomeHeader" String] String)
+type ReturnHeader =     "return-header"     
+                     :> Get '[PlainText] (Headers '[Servant.Header "SomeHeader" String] String)
+                     
 responseHeader :: AppM (Headers '[Servant.Header "SomeHeader" String] String)
 responseHeader = return $ Servant.addHeader "headerVal" "foo"

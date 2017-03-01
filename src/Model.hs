@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 
 module Model where
 
@@ -11,7 +12,7 @@ import GHC.Int
 import Database
 import Database.Persist.Sql
 
-class ApiModel a e where
+class ApiModel a e | a -> e where
   toEntity :: a -> e
   toKey :: a -> Key e
   toUpdate :: a -> [Update e]
