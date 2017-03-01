@@ -13,6 +13,7 @@ import Data.Aeson
 import Data.ByteString.Lazy.Char8 (unpack, pack)
 import GHC.Generics
 import Data.Maybe
+import Control.Exception (SomeException, try)
 
 
 import EmbeddedAPI
@@ -49,9 +50,12 @@ defaultAppConfig = AppConfig 3000 "static"
 
 getConfig :: IO AppConfig
 getConfig = do 
-  fileContent <- readFile "config.json"
-  let appConfig = decode (pack fileContent) :: Maybe AppConfig
-  return $ fromMaybe defaultAppConfig appConfig
+  fileContent <- try $ readFile "config.json" :: IO (Either SomeException String)
+  case fileContent of 
+    (Left _)  -> return defaultAppConfig
+    (Right c) -> do 
+      let appConfig = decode (pack c) :: Maybe AppConfig
+      return $ fromMaybe defaultAppConfig appConfig
 
   
 
