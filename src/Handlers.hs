@@ -9,12 +9,28 @@ module Handlers where
 import Servant          hiding (Handler)
 import Yesod
 import Database.Persist.Sqlite
+import qualified Database.Esqueleto as E
 import GHC.Int (Int64)
 import Data.ByteString.Lazy.Char8 (pack)
 
 import AppM
 import Database
 import Model
+
+
+type GetPersonCars = "person" :> "cars" :> Get '[JSON] [(Int64, Maybe String)]
+
+getPersonCars :: AppM [(Int64, Maybe String)]
+getPersonCars = runDb $ do 
+  rows <- E.select $
+               E.from $ \(person `E.LeftOuterJoin` car)  -> do
+                 E.on (person E.^. PersonCarId E.==. E.just (car E.^. CarId))
+                 return (person E.^. PersonId, E.just (car E.^. CarMake))
+  
+  let tuples = map (\(a,b) -> ( (fromSqlKey . E.unValue) a, E.unValue b)  ) rows  
+       
+  return tuples
+
 
 
 instance MimeRender PlainText Int64 where

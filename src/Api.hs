@@ -43,12 +43,14 @@ type PersonAPI = AddPerson
             :<|> UpdatePerson
             :<|> GetPerson
             :<|> GetPersons
+            :<|> GetPersonCars
 
 personApi :: ServerT PersonAPI AppM
 personApi = addPerson
        :<|> updatePerson
        :<|> getPerson
        :<|> getPersons
+       :<|> getPersonCars
 ---
 
 type JobAPI = AddJob

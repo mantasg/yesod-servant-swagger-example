@@ -30,5 +30,6 @@ executable          yesod-servant-test
                 , mtl
                 , aeson
                 , bytestring
+                , esqueleto
 
   ghc-options:    -threaded -O2 -rtsopts -with-rtsopts=-N
