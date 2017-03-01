@@ -14,7 +14,6 @@ import Database.Persist.Sql
 
 class ApiModel a e | a -> e where
   toEntity :: a -> e
-  toKey :: a -> Key e
   toUpdate :: a -> [Update e]
   fromEntity :: Entity e -> a
 
@@ -25,7 +24,6 @@ instance ToJSON CarModel
 instance FromJSON CarModel
 instance ApiModel CarModel Car where
   toEntity m = Car { carMake = make m }
-  toKey (CarModel (Just i) _) = toSqlKey i -- TODO
   toUpdate (CarModel _ m) = [CarMake =. m]
   fromEntity e = let value = entityVal e
                  in  CarModel { id = Just  (fromSqlKey (entityKey e)), make = carMake value }
@@ -43,7 +41,6 @@ instance ToJSON PersonModel
 instance FromJSON PersonModel
 instance ApiModel PersonModel Person where
   toEntity (PersonModel _ name' address' carId') = Person name' address' (toSqlKey <$> carId')
-  toKey = undefined -- TODO
   toUpdate = undefined -- TODO
   fromEntity e = let value = entityVal e
                  in  PersonModel { id = Just $ fromSqlKey (entityKey e)
@@ -62,7 +59,6 @@ instance ToJSON JobModel
 instance FromJSON JobModel
 instance ApiModel JobModel Job where
   toEntity (JobModel _ title' description') = Job title' description'
-  toKey = undefined -- TODO
   toUpdate = undefined -- TODO
   fromEntity e = let value = entityVal e
                  in  JobModel { id = Just $ fromSqlKey (entityKey e)
