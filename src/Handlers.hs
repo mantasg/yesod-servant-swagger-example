@@ -20,7 +20,7 @@ type AddCar =   "car" :> "add"
 
 addCar :: CarModel -> AppM String
 addCar carModel = do
-  entity <- runDb $ insert $ (toEntity carModel)
+  entity <- runDb $ insert $ toEntity carModel
   return $ show (fromSqlKey entity)
 
 type UpdateCar =   "car" :> "update"
@@ -40,7 +40,7 @@ type DeleteCar = "car" :> "delete"
 
 deleteCar :: Int64 -> AppM String
 deleteCar i = do
-  d <- runDb $ delete (toSqlKey i :: Key Car)
+  runDb $ delete (toSqlKey i :: Key Car)
   return ""
 
 
@@ -54,7 +54,7 @@ getCars = runDb $ do
 type GetCar = "car" :> "get" :> Capture "id" Int64 :> Get '[JSON] CarModel
 getCarModel :: Int64 -> AppM CarModel
 getCarModel i = do
-  entity <- runDb $ selectFirst [CarId <-. [(toSqlKey i)]] []
+  entity <- runDb $ selectFirst [CarId <-. [toSqlKey i]] []
   case entity of
         (Just x) -> return $ fromEntity x
         Nothing  -> throwError err404  { errBody = "Car not found" }
@@ -66,7 +66,7 @@ type AddPerson =  "person" :> "add"
 
 addPerson :: PersonModel -> AppM String
 addPerson model = do
-  key <- runDb $ insert $ (toEntity  model)
+  key <- runDb $ insert $ toEntity  model
   return $ show (fromSqlKey key)
 
 type GetPerson =  "person" :> "get"
@@ -75,7 +75,7 @@ type GetPerson =  "person" :> "get"
 
 getPerson :: Int64 -> AppM PersonModel
 getPerson i = do
-  entity <- runDb $ selectFirst [PersonId <-. [(toSqlKey i :: Key Person)]] []
+  entity <- runDb $ selectFirst [PersonId <-. [toSqlKey i :: Key Person]] []
   case entity of
         (Just x) -> return $ fromEntity x
         Nothing  -> throwError err404  { errBody = "Person not found" }
@@ -91,12 +91,11 @@ getPersons = runDb $ do
 
 type CaseError = "get1" :> Capture "str" String :> Get '[PlainText] String
 caseError :: String -> AppM String
-caseError str = do
-  case str of
-    "404" -> throwError err404
-    "401" -> throwError err401
-    "500" -> throwError err500
-    _       -> return str
+caseError str = case str of
+                  "404" -> throwError err404
+                  "401" -> throwError err401
+                  "500" -> throwError err500
+                  _     -> return str
 
 
 type AddJob = "job" :> "add" :> ReqBody '[JSON] JobModel :> Post '[PlainText] String
@@ -116,7 +115,7 @@ getJob :: Maybe Int64 -> AppM JobModel
 getJob i =  case i of
   Nothing -> throwError err400  { errBody = "Invalid ID" }
   (Just i') -> runDb $ do
-    entity <- selectFirst [JobId <-. [(toSqlKey i' :: Key Job)]] []
+    entity <- selectFirst [JobId <-. [toSqlKey i' :: Key Job]] []
     case entity of
       (Just job) -> return $ fromEntity job
       Nothing    -> throwError err404  { errBody = "Job not found" }
