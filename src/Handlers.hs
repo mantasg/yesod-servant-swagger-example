@@ -36,12 +36,12 @@ updateCar carModel = do
 
 type DeleteCar = "car" :> "delete"
               :> Capture "id" Int64
-              :> Delete '[PlainText] String
+              :> Delete '[PlainText] NoContent
 
-deleteCar :: Int64 -> AppM String
+deleteCar :: Int64 -> AppM NoContent
 deleteCar i = do
   runDb $ delete (toSqlKey i :: Key Car)
-  return ""
+  return NoContent
 
 
 
