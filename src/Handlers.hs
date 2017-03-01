@@ -30,14 +30,14 @@ addCar carModel = do
   return $ fromSqlKey entity
 
 type UpdateCar =   "car" :> "update"
+             :> Capture "id" Int64
              :> ReqBody '[JSON] CarModel
-             :> Post '[PlainText] String
+             :> Post '[PlainText] NoContent
 
-updateCar :: CarModel -> AppM String
-updateCar carModel = do
-  let key = toKey carModel
-  runDb $ update key (toUpdate carModel)
-  return $ show (fromSqlKey key)
+updateCar :: Int64 -> CarModel -> AppM NoContent
+updateCar i carModel = do
+  runDb $ update (toSqlKey i) (toUpdate carModel)
+  return NoContent
 
 
 type DeleteCar = "car" :> "delete"
