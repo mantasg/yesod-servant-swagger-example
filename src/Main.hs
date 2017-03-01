@@ -12,6 +12,7 @@ import           Yesod.Static
 import Data.Aeson
 import Data.ByteString.Lazy.Char8 (unpack, pack)
 import GHC.Generics
+import Data.Maybe
 
 
 import EmbeddedAPI
@@ -50,9 +51,8 @@ getConfig :: IO AppConfig
 getConfig = do 
   fileContent <- readFile "config.json"
   let appConfig = decode (pack fileContent) :: Maybe AppConfig
-  return $ case appConfig of 
-              (Just c) -> c
-              Nothing  -> defaultAppConfig
+  return $ fromMaybe defaultAppConfig appConfig
+
   
 
 main :: IO ()
