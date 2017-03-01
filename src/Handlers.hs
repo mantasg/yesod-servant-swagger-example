@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Handlers where
 
@@ -8,20 +10,24 @@ import Servant          hiding (Handler)
 import Yesod
 import Database.Persist.Sqlite
 import GHC.Int (Int64)
+import Data.ByteString.Lazy.Char8 (pack)
 
 import AppM
 import Database
 import Model
 
 
+instance MimeRender PlainText Int64 where
+  mimeRender _ v = pack $ show v
+
 type AddCar =   "car" :> "add"
              :> ReqBody '[JSON] CarModel
-             :> Post '[PlainText] String
+             :> Post '[PlainText] Int64
 
-addCar :: CarModel -> AppM String
+addCar :: CarModel -> AppM Int64
 addCar carModel = do
   entity <- runDb $ insert $ toEntity carModel
-  return $ show (fromSqlKey entity)
+  return $ fromSqlKey entity
 
 type UpdateCar =   "car" :> "update"
              :> ReqBody '[JSON] CarModel
