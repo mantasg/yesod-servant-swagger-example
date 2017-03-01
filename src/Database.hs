@@ -18,6 +18,7 @@ import           Database.Persist.Postgresql
 import           Control.Monad.Logger (runStderrLoggingT)
 import           Data.Pool
 import           Control.Monad.Reader
+import           Data.Text
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
   Car json
@@ -52,7 +53,12 @@ makeSqlitePool = do
    _ <- runSqlPool (insert $ Person "John" (Just "address") (Just carId)) p
    return p
    
-   
+makeSqlitePoolFromFile :: String -> IO (Pool SqlBackend)
+makeSqlitePoolFromFile fn = do
+  p <- runStderrLoggingT $ createSqlitePool (pack fn) 10
+  runSqlPool (runMigration migrateAll) p
+  return p
+
 makePostgresPool :: IO (Pool SqlBackend)
 makePostgresPool = do
   p <- runStderrLoggingT $ createPostgresqlPool "host=localhost dbname=postgres user=postgres password=postgres port=5432" 10
