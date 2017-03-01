@@ -40,11 +40,13 @@ carApi = addCar
 ---
 
 type PersonAPI = AddPerson
+            :<|> UpdatePerson
             :<|> GetPerson
             :<|> GetPersons
 
 personApi :: ServerT PersonAPI AppM
 personApi = addPerson
+       :<|> updatePerson
        :<|> getPerson
        :<|> getPersons
 ---

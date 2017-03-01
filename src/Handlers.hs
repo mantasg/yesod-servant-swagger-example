@@ -74,6 +74,17 @@ addPerson :: PersonModel -> AppM String
 addPerson model = do
   key <- runDb $ insert $ toEntity  model
   return $ show (fromSqlKey key)
+  
+type UpdatePerson =    "person" :> "update"
+                    :> Capture "id" Int64 
+                    :> ReqBody '[JSON] PersonModel
+                    :> Post '[PlainText] NoContent
+                    
+updatePerson :: Int64 -> PersonModel -> AppM NoContent
+updatePerson i model = do
+  runDb $ update (toSqlKey i) (toUpdate model) 
+  return NoContent
+
 
 type GetPerson =  "person" :> "get"
                :> Capture "id" Int64

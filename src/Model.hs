@@ -41,7 +41,10 @@ instance ToJSON PersonModel
 instance FromJSON PersonModel
 instance ApiModel PersonModel Person where
   toEntity (PersonModel _ name' address' carId') = Person name' address' (toSqlKey <$> carId')
-  toUpdate = undefined -- TODO
+  toUpdate (PersonModel _ name' address' carId') = [ PersonName =. name'
+                                                   , PersonAddress =. address'
+                                                   , PersonCarId =. toSqlKey <$> carId'
+                                                   ]
   fromEntity e = let value = entityVal e
                  in  PersonModel { id = Just $ fromSqlKey (entityKey e)
                                  , name = personName value
