@@ -52,11 +52,13 @@ personApi = addPerson
 ---
 
 type JobAPI = AddJob
+         :<|> UpdateJob
          :<|> GetJobs
          :<|> GetJob
 
 jobApi :: ServerT JobAPI AppM
 jobApi = addJob
+    :<|> updateJob
     :<|> getJobs
     :<|> getJob
 ---

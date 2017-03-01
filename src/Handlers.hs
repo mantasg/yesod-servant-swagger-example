@@ -121,6 +121,17 @@ addJob model = runDb $ do
   key <- insert (toEntity model :: Job)
   return $ show $ fromSqlKey key
 
+type UpdateJob =    "job" :> "update" 
+                 :> Capture "id" Int64 
+                 :> ReqBody '[JSON] JobModel
+                 :> Post '[PlainText] NoContent
+                 
+updateJob :: Int64 -> JobModel -> AppM NoContent
+updateJob i model = do
+  runDb $ update (toSqlKey i) (toUpdate model)
+  return NoContent
+                 
+
 type GetJobs = "job" :> "list" :> Get '[JSON] [JobModel]
 getJobs :: AppM [JobModel]
 getJobs = runDb $ do

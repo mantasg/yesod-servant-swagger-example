@@ -62,7 +62,9 @@ instance ToJSON JobModel
 instance FromJSON JobModel
 instance ApiModel JobModel Job where
   toEntity (JobModel _ title' description') = Job title' description'
-  toUpdate = undefined -- TODO
+  toUpdate (JobModel _ title' description') = [ JobTitle =. title'
+                                              , JobDescription =. description'
+                                              ]
   fromEntity e = let value = entityVal e
                  in  JobModel { id = Just $ fromSqlKey (entityKey e)
                               , title = jobTitle value
