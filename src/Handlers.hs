@@ -116,12 +116,10 @@ getJobs = runDb $ do
   list <- selectList [] [Asc JobId]
   return $ map fromEntity list
 
-type GetJob = "job" :> "get" :> QueryParam "id" Int64 :>  Get '[JSON] JobModel
-getJob :: Maybe Int64 -> AppM JobModel
-getJob i =  case i of
-  Nothing -> throwError err400  { errBody = "Invalid ID" }
-  (Just i') -> runDb $ do
-    entity <- selectFirst [JobId <-. [toSqlKey i' :: Key Job]] []
+type GetJob = "job" :> "get" :> Capture "id" Int64 :>  Get '[JSON] JobModel
+getJob :: Int64 -> AppM JobModel
+getJob i = runDb $ do
+    entity <- selectFirst [JobId <-. [toSqlKey i :: Key Job]] []
     case entity of
       (Just job) -> return $ fromEntity job
       Nothing    -> throwError err404  { errBody = "Job not found" }
