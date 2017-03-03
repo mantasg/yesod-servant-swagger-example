@@ -17,7 +17,7 @@ executable          yesod-servant-test
                 , servant-server
                 , text
                 , swagger2
-                , servant-swagger >= 1.1
+                , servant-swagger
                 , lens
                 , persistent
                 , persistent-postgresql  
