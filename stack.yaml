@@ -41,7 +41,6 @@ packages:
 - location: C:\Users\mantasgudynas\Desktop\Haskell\servant-swagger
 - location: C:\Users\mantasgudynas\Desktop\Haskell\servant\servant
 - location: C:\Users\mantasgudynas\Desktop\Haskell\servant\servant-server
-- location: C:\Users\mantasgudynas\Desktop\Haskell\servant\servant-foreign
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
