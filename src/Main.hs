@@ -5,6 +5,8 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 
+module Main where
+
 import           Control.Exception          (SomeException, try)
 import           Data.Aeson
 import           Data.ByteString.Lazy.Char8 (pack, unpack)

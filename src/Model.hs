@@ -5,7 +5,7 @@
 
 module Model where
 
-import           Data.Swagger         hiding (get)
+import           Data.Swagger
 import           Database
 import           Database.Persist.Sql
 import           GHC.Generics

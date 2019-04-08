@@ -59,8 +59,8 @@ makeSqlitePoolFromFile fn = do
   runSqlPool (runMigration migrateAll) p
   return p
 
-makePostgresPool :: IO (Pool SqlBackend)
-makePostgresPool = do
+makePostgresPool :: Bool -> IO (Pool SqlBackend)
+makePostgresPool doMigrate = do
   p <- runStderrLoggingT $ createPostgresqlPool "host=localhost dbname=postgres user=postgres password=postgres port=5432" 10
-  --runSqlPool (runMigration migrateAll) p
+  when doMigrate $ runSqlPool (runMigration migrateAll) p
   return p

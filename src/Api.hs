@@ -7,7 +7,7 @@ module Api where
 import           Control.Lens
 import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.Reader
-import           Data.Swagger               hiding (get)
+import           Data.Swagger
 import           Servant                    hiding (Handler)
 import           Servant.Swagger
 

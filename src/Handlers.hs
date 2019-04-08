@@ -11,7 +11,6 @@ import qualified Database.Esqueleto         as E
 import           Database.Persist.Sqlite
 import           GHC.Int                    (Int64)
 import           Servant                    hiding (Handler)
-import           Yesod
 
 import           AppM
 import           Database
