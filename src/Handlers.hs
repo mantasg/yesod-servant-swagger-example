@@ -1,34 +1,34 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Handlers where
 
-import Servant          hiding (Handler)
-import Yesod
-import Database.Persist.Sqlite
-import qualified Database.Esqueleto as E
-import GHC.Int (Int64)
-import Data.ByteString.Lazy.Char8 (pack)
+import           Data.ByteString.Lazy.Char8 (pack)
+import qualified Database.Esqueleto         as E
+import           Database.Persist.Sqlite
+import           GHC.Int                    (Int64)
+import           Servant                    hiding (Handler)
+import           Yesod
 
-import AppM
-import Database
-import Model
+import           AppM
+import           Database
+import           Model
 
 
 type GetPersonCars = "person" :> "cars" :> Get '[JSON] [(Int64, Maybe String)]
 
 getPersonCars :: AppM [(Int64, Maybe String)]
-getPersonCars = runDb $ do 
+getPersonCars = runDb $ do
   rows <- E.select $
                E.from $ \(person `E.LeftOuterJoin` car)  -> do
                  E.on (person E.^. PersonCarId E.==. E.just (car E.^. CarId))
                  return (person E.^. PersonId, E.just (car E.^. CarMake))
-  
-  let tuples = map (\(a,b) -> ( (fromSqlKey . E.unValue) a, E.unValue b)  ) rows  
-       
+
+  let tuples = map (\(a,b) -> ( (fromSqlKey . E.unValue) a, E.unValue b)  ) rows
+
   return tuples
 
 
@@ -90,15 +90,15 @@ addPerson :: PersonModel -> AppM String
 addPerson model = do
   key <- runDb $ insert $ toEntity  model
   return $ show (fromSqlKey key)
-  
+
 type UpdatePerson =    "person" :> "update"
-                    :> Capture "id" Int64 
+                    :> Capture "id" Int64
                     :> ReqBody '[JSON] PersonModel
                     :> Post '[PlainText] NoContent
-                    
+
 updatePerson :: Int64 -> PersonModel -> AppM NoContent
 updatePerson i model = do
-  runDb $ update (toSqlKey i) (toUpdate model) 
+  runDb $ update (toSqlKey i) (toUpdate model)
   return NoContent
 
 
@@ -137,16 +137,16 @@ addJob model = runDb $ do
   key <- insert (toEntity model :: Job)
   return $ show $ fromSqlKey key
 
-type UpdateJob =    "job" :> "update" 
-                 :> Capture "id" Int64 
+type UpdateJob =    "job" :> "update"
+                 :> Capture "id" Int64
                  :> ReqBody '[JSON] JobModel
                  :> Post '[PlainText] NoContent
-                 
+
 updateJob :: Int64 -> JobModel -> AppM NoContent
 updateJob i model = do
   runDb $ update (toSqlKey i) (toUpdate model)
   return NoContent
-                 
+
 
 type GetJobs = "job" :> "list" :> Get '[JSON] [JobModel]
 getJobs :: AppM [JobModel]
@@ -171,8 +171,8 @@ type WithHeader = "with-header"       :> Servant.Header "Header" String
 withHeader :: Maybe String -> AppM String
 withHeader = return . show
 ---
-type ReturnHeader =     "return-header"     
+type ReturnHeader =     "return-header"
                      :> Get '[PlainText] (Headers '[Servant.Header "SomeHeader" String] String)
-                     
+
 responseHeader :: AppM (Headers '[Servant.Header "SomeHeader" String] String)
 responseHeader = return $ Servant.addHeader "headerVal" "foo"

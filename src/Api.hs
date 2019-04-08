@@ -1,21 +1,19 @@
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE TypeOperators         #-}
-
-
+{-# LANGUAGE TypeOperators     #-}
 
 module Api where
 
-import Servant          hiding (Handler)
-import Data.Swagger hiding (get)
-import Control.Monad.Trans.Reader
-import Control.Monad.Trans.Except
-import Control.Lens
-import Servant.Swagger
+import           Control.Lens
+import           Control.Monad.Trans.Except
+import           Control.Monad.Trans.Reader
+import           Data.Swagger               hiding (get)
+import           Servant                    hiding (Handler)
+import           Servant.Swagger
 
-import Database
-import AppM
-import Handlers
+import           AppM
+import           Database
+import           Handlers
 
 --- Transformer Stack to DB access
 readerToEither :: Config -> AppM :~> ExceptT ServantErr IO
@@ -37,7 +35,7 @@ carApi = addCar
     :<|> getCars
     :<|> getCarModel
     :<|> deleteCar
----
+--
 
 type PersonAPI = AddPerson
             :<|> UpdatePerson
@@ -51,7 +49,7 @@ personApi = addPerson
        :<|> getPerson
        :<|> getPersons
        :<|> getPersonCars
----
+--
 
 type JobAPI = AddJob
          :<|> UpdateJob
@@ -63,7 +61,7 @@ jobApi = addJob
     :<|> updateJob
     :<|> getJobs
     :<|> getJob
----
+--
 
 type CombinedAPI = CarAPI
              :<|> PersonAPI
@@ -78,7 +76,7 @@ server = carApi :<|> personApi :<|> jobApi
     :<|> responseHeader
     :<|> caseError
 
---- Swagger Docs
+-- Swagger Docs
 getSwagger :: Swagger
 getSwagger = toSwagger (Proxy :: Proxy CombinedAPI)
   & basePath .~ Just "/api"

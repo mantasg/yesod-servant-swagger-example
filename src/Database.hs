@@ -1,24 +1,24 @@
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE EmptyDataDecls             #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE EmptyDataDecls      #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE QuasiQuotes                #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeFamilies               #-}
 
 module Database where
 
-import           Yesod
-import           Database.Persist.Sqlite
-import           Database.Persist.Postgresql
-import           Control.Monad.Logger (runStderrLoggingT)
-import           Data.Pool
+import           Control.Monad.Logger        (runStderrLoggingT)
 import           Control.Monad.Reader
+import           Data.Pool
 import           Data.Text
+import           Database.Persist.Postgresql
+import           Database.Persist.Sqlite
+import           Yesod
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
   Car json
@@ -52,7 +52,7 @@ makeSqlitePool = do
    _ <- runSqlPool (insert $ Person "George" Nothing (Just carId)) p
    _ <- runSqlPool (insert $ Person "John" (Just "address") (Just carId)) p
    return p
-   
+
 makeSqlitePoolFromFile :: String -> IO (Pool SqlBackend)
 makeSqlitePoolFromFile fn = do
   p <- runStderrLoggingT $ createSqlitePool (pack fn) 10

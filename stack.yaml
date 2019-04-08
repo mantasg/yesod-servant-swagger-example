@@ -37,10 +37,10 @@ resolver: lts-8.2
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - '.'
-- location: C:\Users\mantasgudynas\Desktop\Haskell\servant-js
-- location: C:\Users\mantasgudynas\Desktop\Haskell\servant-swagger
-- location: C:\Users\mantasgudynas\Desktop\Haskell\servant\servant
-- location: C:\Users\mantasgudynas\Desktop\Haskell\servant\servant-server
+
+
+
+
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)

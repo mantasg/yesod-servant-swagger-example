@@ -1,14 +1,14 @@
-{-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TypeFamilies          #-}
 
 module EmbeddedAPI where
 
-import  Network.Wai
-import  Yesod.Core.Types
-import  Data.Text (Text)
-import  Yesod
+import           Data.Text        (Text)
+import           Network.Wai
+import           Yesod
+import           Yesod.Core.Types
 
 newtype EmbeddedAPI = EmbeddedAPI { eapiApplication :: Application }
 

@@ -1,23 +1,23 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE DeriveGeneric          #-}
+{-# LANGUAGE DuplicateRecordFields  #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
 
 module Model where
 
-import Yesod
-import GHC.Generics
-import Data.Swagger hiding (get)
-import GHC.Int
-import Database
-import Database.Persist.Sql
+import           Data.Swagger         hiding (get)
+import           Database
+import           Database.Persist.Sql
+import           GHC.Generics
+import           GHC.Int
+import           Yesod
 
 class ApiModel a e | a -> e where
   toEntity :: a -> e
   toUpdate :: a -> [Update e]
   fromEntity :: Entity e -> a
 
---- Car
+-- Car
 data CarModel = CarModel { id :: Maybe Int64, make :: String  } deriving (Generic)
 instance ToSchema CarModel
 instance ToJSON CarModel
@@ -29,11 +29,11 @@ instance ApiModel CarModel Car where
                  in  CarModel { id = Just  (fromSqlKey (entityKey e)), make = carMake value }
 
 
---- Person
-data PersonModel = PersonModel { id :: Maybe Int64
-                               , name :: String
+-- Person
+data PersonModel = PersonModel { id      :: Maybe Int64
+                               , name    :: String
                                , address :: Maybe String
-                               , carId :: Maybe Int64
+                               , carId   :: Maybe Int64
                                } deriving Generic
 
 instance ToSchema PersonModel
@@ -51,9 +51,9 @@ instance ApiModel PersonModel Person where
                                  , address = personAddress value
                                  , carId = fromSqlKey <$> personCarId value
                                  }
---- Job
-data JobModel = JobModel { id :: Maybe Int64
-                         , title :: String
+-- Job
+data JobModel = JobModel { id          :: Maybe Int64
+                         , title       :: String
                          , description :: Maybe String
                          } deriving Generic
 

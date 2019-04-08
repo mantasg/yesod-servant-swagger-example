@@ -1,28 +1,24 @@
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE QuasiQuotes           #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
 
-
-import           Servant          hiding (Handler)
+import           Control.Exception          (SomeException, try)
+import           Data.Aeson
+import           Data.ByteString.Lazy.Char8 (pack, unpack)
+import           Data.Maybe
+import           GHC.Generics
+import           Servant                    hiding (Handler)
 import           Yesod
 import           Yesod.Static
-import Data.Aeson
-import Data.ByteString.Lazy.Char8 (unpack, pack)
-import GHC.Generics
-import Data.Maybe
-import Control.Exception (SomeException, try)
 
+import           Api
+import           Database
+import           EmbeddedAPI
 
-import EmbeddedAPI
-import Database
-import Api
-
-
-
-data App = App { appAPI :: EmbeddedAPI
+data App = App { appAPI    :: EmbeddedAPI
                , getStatic :: Static
                }
 
@@ -40,28 +36,24 @@ getHomeR = defaultLayout [whamlet|Hello World!|]
 getSwaggerR :: Handler String
 getSwaggerR = return $ unpack $ encode getSwagger
 
-
 data AppConfig = AppConfig { port :: Int, staticDirectory :: String } deriving (Generic, Show)
 instance FromJSON AppConfig
 
-
-defaultAppConfig :: AppConfig 
+defaultAppConfig :: AppConfig
 defaultAppConfig = AppConfig 3000 "static"
 
 getConfig :: IO AppConfig
-getConfig = do 
+getConfig = do
   fileContent <- try $ readFile "config.json" :: IO (Either SomeException String)
-  case fileContent of 
+  case fileContent of
     (Left _)  -> return defaultAppConfig
-    (Right c) -> do 
+    (Right c) -> do
       let appConfig = decode (pack c) :: Maybe AppConfig
       return $ fromMaybe defaultAppConfig appConfig
 
-  
-
 main :: IO ()
 main = do
-  appConfig <- getConfig  
+  appConfig <- getConfig
   pool <- makeSqlitePool
   --pool <- makePostgresPool
   let myServer = readerServer (Config pool)
