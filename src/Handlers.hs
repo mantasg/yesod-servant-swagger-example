@@ -161,9 +161,6 @@ getJob i = runDb $ do
       (Just job) -> return $ fromEntity job
       Nothing    -> throwError err404  { errBody = "Job not found" }
 
-
-
-
 -- Request handlers
 type WithHeader = "with-header"       :> Servant.Header "Header" String
                                       :> Get '[PlainText] String

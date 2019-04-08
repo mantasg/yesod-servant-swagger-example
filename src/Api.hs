@@ -5,23 +5,16 @@
 module Api where
 
 import           Control.Lens
-import           Control.Monad.Trans.Except
-import           Control.Monad.Trans.Reader
 import           Data.Swagger
-import           Servant                    hiding (Handler)
+import           Servant                         hiding (Handler)
 import           Servant.Swagger
 
 import           AppM
 import           Database
 import           Handlers
 
---- Transformer Stack to DB access
-readerToEither :: Config -> AppM :~> ExceptT ServantErr IO
-readerToEither cfg = Nat $ \x -> runReaderT x cfg
-
 readerServer :: Config -> Server CombinedAPI
-readerServer cfg = enter (readerToEither cfg) server
----
+readerServer cfg = hoistServer (Proxy :: Proxy CombinedAPI) (makeNat cfg) server
 
 type CarAPI = AddCar
          :<|> UpdateCar

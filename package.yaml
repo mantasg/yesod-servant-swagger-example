@@ -25,6 +25,7 @@ dependencies:
   - aeson
   - bytestring
   - esqueleto
+  - unliftio-core
 
 executables:
   yesod-servant-test:

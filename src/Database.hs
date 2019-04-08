@@ -37,7 +37,7 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 
 newtype Config = Config { getPool :: Pool SqlBackend }
 
-runDb :: (MonadBaseControl IO m, MonadReader Config m) => ReaderT SqlBackend m b -> m b
+runDb :: (MonadUnliftIO m, MonadReader Config m) => ReaderT SqlBackend m b -> m b
 runDb query = do
    pool <- asks getPool
    runSqlPool query pool

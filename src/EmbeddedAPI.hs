@@ -19,7 +19,7 @@ instance RenderRoute EmbeddedAPI where
 instance ParseRoute EmbeddedAPI where
   parseRoute t = Just (EmbeddedAPIR t)
 
-instance Yesod master => YesodSubDispatch EmbeddedAPI (HandlerT master IO) where
+instance Yesod master => YesodSubDispatch EmbeddedAPI master where
   yesodSubDispatch YesodSubRunnerEnv{..} req = resp
     where
       master = yreSite ysreParentEnv
