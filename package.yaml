@@ -1,0 +1,34 @@
+name:       yesod-servant-test
+version:    0.0.1
+build-type: Simple
+
+dependencies:
+  - base
+  - yesod
+  - yesod-core
+  - yesod-static
+  - wai
+  - servant-server
+  - text
+  - swagger2
+  - servant-swagger
+  - lens
+  - persistent
+  - persistent-postgresql
+  - persistent-sqlite
+  - persistent-template
+  - monad-logger
+  - transformers
+  - either
+  - resource-pool
+  - mtl
+  - aeson
+  - bytestring
+  - esqueleto
+
+executables:
+  yesod-servant-test:
+    main: Main.hs
+    source-dirs:
+    - src
+    ghc-options: -Wall -fwarn-tabs -threaded -O2 -rtsopts -with-rtsopts=-N
